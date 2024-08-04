@@ -1,2 +1,35 @@
 # hykube
-Kubernetes control plane for hyperscaling needs
+Kubernetes control plane for hyperscaling needs.
+
+## Project goals
+
+The goal of the project is to rework controller management mechanisms in Kubernetes to provide more control over management of resources. Close compliance with K8S is desired.
+
+## Kubernetes limitations
+
+It is well known Kubernetes is not handling well management of hyperscale number of resources. [As stated in the doc](https://kubernetes.io/docs/setup/best-practices/cluster-large/), for 1.30.0 version, it can support up to:
+* 5,000 nodes
+* 150,000 pods
+
+### Reconciliation loop
+
+Kubernetes synchronizes desired state to a real state via reconciliation loops:
+```mermaid
+flowchart LR
+    DS(((Desired State)))-- Take actions -->OS(((Observed State)));
+    OS -- Observe changes --> DS;
+```
+
+The reason for having this automatic loop is to be able to react to dynamically changing environment. But is it always a case? A user do not expect having its load balancer in AWS spontaneously disappear from the infrastructure. The infrastructure is already abstracted and handles cases where underlying hardware malfunctions.
+
+Because of that, it's visible that more control is needed.
+
+### CRDs fragmentation
+
+Another example is issue with handling high amounts of CRDs, that cause fragmentation of libraries to handle hyperscaler' resources, e.g. Crossplane has [150+ libraries to handle AWS services](https://marketplace.upbound.io/providers/upbound/provider-family-aws/v1.10.0/providers).
+
+Because of the above reasons, [Kubernetes Cluster API](https://cluster-api.sigs.k8s.io/) is not a solution to the stated problems.
+
+## Kubernetes good parts
+
+Unarguably, one of the best parts of the K8S is the API interface and its ecosystem, that allows building complex products. A high number of engineers is aware of `kubectl` command tool or [helm](https://helm.sh/) package manager.
