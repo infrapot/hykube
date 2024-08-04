@@ -19,6 +19,10 @@ Kubernetes does not handle the management of hyperscale numbers of resources wel
 
 Even though higher numbers are possible, e.g., done by [Google](https://cloud.google.com/blog/products/containers-kubernetes/google-kubernetes-engine-clusters-can-have-up-to-15000-nodes), it's still an order of magnitude lower than hyperscale level clusters with 100,000+ nodes.
 
+### Containerness bound
+
+Even though containers are perceived to be the basis for modern infrastructure, K8S pods abstraction does not work well with non-container architectures like serverless or bare-metal. The project tries to abstract away the concept of pods and containers as it limits possible infrastructures it can support, especially hyperscaler ones, that can encompass VMs, bare metal with custom configuration scripts, and serverless.
+
 ### Reconciliation loop
 
 Kubernetes synchronizes the desired state to the real state via reconciliation loops:
@@ -47,3 +51,48 @@ Another example of K8S limitations is the issue with handling high amounts of CR
 ## Kubernetes good parts
 
 Unarguably, one of the best parts of K8S is the API interface and its ecosystem, which allows building complex products. A high number of engineers are aware of the `kubectl` command tool or [Helm](https://helm.sh/) package manager.
+
+## High Level Architecture
+
+```mermaid
+
+C4Container
+    title Hykube containers
+
+    Container(kubectl, "kubectl")
+
+    Person(user, "Hykube user")
+
+
+    Container_Boundary(c1, "Infrastructure") {
+        Container_Boundary(c2, "Control Plane") {
+            Container(api, "API Server")
+            ContainerDb(db, "DB")
+            Container(pm, "Plugin Manager")
+            Container_Ext(p1, "Plugin")
+        }
+
+        Container_Boundary(dep, "Deployment env") {
+            Container_Ext(res1, "Resource")
+        }
+    }
+
+    Rel(user, kubectl, "Uses")
+    Rel(kubectl, api, "Calls")
+    Rel(api, db, "Stores")
+    Rel(api, pm, "Uses")
+    Rel(pm, p1, "Uses")
+    Rel(p1, res1, "Manages")
+
+    UpdateRelStyle(user, kubectl, $offsetY="-10", $offsetX="5")
+    UpdateRelStyle(kubectl, api, $offsetY="-40", $offsetX="-10")
+    UpdateRelStyle(api, db, $offsetY="-10", $offsetX="-15")
+    UpdateRelStyle(pm, p1, $offsetY="-10", $offsetX="-15")
+    UpdateRelStyle(p1, res1, $offsetY="20", $offsetX="-45")
+
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
+
+
+
+```
