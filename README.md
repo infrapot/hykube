@@ -3,13 +3,15 @@ Kubernetes control plane for hyperscaling needs.
 
 ## Project goals
 
-The goal of the project is to rework controller management mechanisms in Kubernetes to provide more control over management of resources. Close compliance with K8S is desired.
+The goal of the project is to rework controller management mechanisms in Kubernetes to provide more control over management of resources, to achieve management of 100,000+ nodes/resources. Close compliance with K8S is desired.
 
 ## Kubernetes limitations
 
-It is well known Kubernetes is not handling well management of hyperscale number of resources. [As stated in the doc](https://kubernetes.io/docs/setup/best-practices/cluster-large/), for 1.30.0 version, it can support up to:
+Kubernetes is not handling well management of hyperscale number of resources. [As stated in the doc](https://kubernetes.io/docs/setup/best-practices/cluster-large/), for 1.30.0 version, it can support up to:
 * 5,000 nodes
 * 150,000 pods
+
+Even though higher numbers are possible e.g. done by [Google](https://cloud.google.com/blog/products/containers-kubernetes/google-kubernetes-engine-clusters-can-have-up-to-15000-nodes) it's still one order of magnitude lower than hyperscale level clusters with 100,000s nodes.
 
 ### Reconciliation loop
 
@@ -20,7 +22,11 @@ flowchart LR
     OS -- Observe changes --> DS;
 ```
 
-The reason for having this automatic loop is to be able to react to dynamically changing environment. But is it always a case? A user do not expect having its load balancer in AWS spontaneously disappear from the infrastructure. The infrastructure is already abstracted and handles cases where underlying hardware malfunctions.
+The reason for having this automatic loop is to be able to react to dynamically changing environment. If a lost machine is detected, and it's determined pods are no longer available, the cluster tries to restore automatically to its desired state.
+
+Within complex k8s configurations, watching mechanism on endpoints requires highest amount of resources, as [shown by OpenAI](https://openai.com/index/scaling-kubernetes-to-7500-nodes/).
+
+Is it always necessary to follow this logic? A user do not expect having its load balancer in AWS spontaneously disappear from the infrastructure. The infrastructure is already abstracted and handles cases where underlying hardware malfunctions and Disaster Recovery failover plans may be more complicated than just this simple loop.
 
 Because of that, it's visible that more control is needed.
 
