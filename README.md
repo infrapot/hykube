@@ -92,7 +92,49 @@ C4Container
 
 
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
+```
 
+## Local run
 
+Generate certificates for CA and test user `development` in the superuser group `system:masters` for local testing:
+```shell
+openssl req -nodes -new -x509 -keyout ca.key -out ca.crt
 
+openssl req -out client.csr -new -newkey rsa:4096 -nodes -keyout client.key -subj "/CN=development/O=system:masters"
+openssl x509 -req -days 365 -in client.csr -CA ca.crt -CAkey ca.key -set_serial 01 -sha256 -out client.crt
+
+openssl pkcs12 -export -in ./client.crt -inkey ./client.key -out client.p12 -passout pass:password
+```
+Set the generated certs and server config:
+```shell
+kubectl config set clusters.hykube.certificate-authority-data $(cat ca.crt | base64 -i -)
+kubectl config set users.hykube.client-certificate-data $(cat client.crt | base64 -i -)
+kubectl config set users.hykube.client-key-data $(cat client.key | base64 -i -)
+```
+Add a context to kubeconfig:
+```yaml
+contexts:
+- context:
+    cluster: hykube
+    user: hykube
+  name: hykube
+current-context: hykube
+```
+Set test server address:
+```yaml
+clusters:
+- cluster:
+    certificate-authority-data: [SET ABOVE]
+    server: https://127.0.0.1:8443
+  name: hykube
+```
+
+Run binary with following arguments:
+```shell
+sample-apiserver --secure-port 8443 --v=7 \
+   --client-ca-file ca.crt \
+   --kubeconfig ./config \
+   --authentication-kubeconfig ./config \
+   --authorization-kubeconfig ./config \
+   --authentication-skip-lookup
 ```

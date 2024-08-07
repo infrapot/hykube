@@ -20,8 +20,18 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/runtime/serializer/json"
+	"k8s.io/apiserver/pkg/registry/generic"
+	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
+	"k8s.io/apiserver/pkg/storage/storagebackend"
+	"k8s.io/apiserver/pkg/util/flowcontrol/request"
 	"net"
+	"time"
 
+	"github.com/k3s-io/kine/pkg/endpoint"
 	"github.com/spf13/cobra"
 
 	"hykube.io/apiserver/pkg/admission/plugin/banflunder"
@@ -31,8 +41,6 @@ import (
 	clientset "hykube.io/apiserver/pkg/generated/clientset/versioned"
 	informers "hykube.io/apiserver/pkg/generated/informers/externalversions"
 	sampleopenapi "hykube.io/apiserver/pkg/generated/openapi"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/version"
@@ -60,6 +68,47 @@ type WardleServerOptions struct {
 	AlternateDNS []string
 }
 
+type proxiedRESTOptionsGetter struct {
+	scheme         *runtime.Scheme
+	dsn            string
+	groupVersioner runtime.GroupVersioner
+}
+
+// GetRESTOptions implements RESTOptionsGetter interface.
+func (g *proxiedRESTOptionsGetter) GetRESTOptions(resource schema.GroupResource, example runtime.Object) (generic.RESTOptions, error) {
+	etcdConfig, err := endpoint.Listen(context.TODO(), endpoint.Config{
+		Endpoint: g.dsn,
+	})
+	if err != nil {
+		return generic.RESTOptions{}, err
+	}
+	s := json.NewSerializer(json.DefaultMetaFactory, g.scheme, g.scheme, false)
+	codec := serializer.NewCodecFactory(g.scheme).
+		CodecForVersions(s, s, g.groupVersioner, g.groupVersioner)
+	restOptions := generic.RESTOptions{
+		ResourcePrefix:            resource.String(),
+		Decorator:                 genericregistry.StorageWithCacher(),
+		EnableGarbageCollection:   true,
+		DeleteCollectionWorkers:   1,
+		CountMetricPollPeriod:     time.Minute,
+		StorageObjectCountTracker: request.NewStorageObjectCountTracker(),
+		StorageConfig: &storagebackend.ConfigForResource{
+			GroupResource: resource,
+			Config: storagebackend.Config{
+				Prefix: "/kine/",
+				Codec:  codec,
+				Transport: storagebackend.TransportConfig{
+					ServerList:    etcdConfig.Endpoints,
+					TrustedCAFile: etcdConfig.TLSConfig.CAFile,
+					CertFile:      etcdConfig.TLSConfig.CertFile,
+					KeyFile:       etcdConfig.TLSConfig.KeyFile,
+				},
+			},
+		},
+	}
+	return restOptions, nil
+}
+
 func WardleVersionToKubeVersion(ver *version.Version) *version.Version {
 	if ver.Major() != 1 {
 		return nil
@@ -85,7 +134,8 @@ func NewWardleServerOptions(out, errOut io.Writer) *WardleServerOptions {
 		StdOut: out,
 		StdErr: errOut,
 	}
-	o.RecommendedOptions.Etcd.StorageConfig.EncodeVersioner = runtime.NewMultiGroupVersioner(v1alpha1.SchemeGroupVersion, schema.GroupKind{Group: v1alpha1.GroupName})
+	//o.RecommendedOptions.Etcd.StorageConfig.EncodeVersioner = runtime.NewMultiGroupVersioner(v1alpha1.SchemeGroupVersion, schema.GroupKind{Group: v1alpha1.GroupName})
+	o.RecommendedOptions.Etcd = nil
 	return o
 }
 
@@ -209,6 +259,12 @@ func (o *WardleServerOptions) Config() (*apiserver.Config, error) {
 
 	serverConfig.FeatureGate = utilversion.DefaultComponentGlobalsRegistry.FeatureGateFor(utilversion.DefaultKubeComponent)
 	serverConfig.EffectiveVersion = utilversion.DefaultComponentGlobalsRegistry.EffectiveVersionFor(apiserver.WardleComponentName)
+
+	serverConfig.RESTOptionsGetter = &proxiedRESTOptionsGetter{
+		scheme:         nil,
+		dsn:            "sqlite://file.db",
+		groupVersioner: nil,
+	}
 
 	if err := o.RecommendedOptions.ApplyTo(serverConfig); err != nil {
 		return nil, err

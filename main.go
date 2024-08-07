@@ -24,6 +24,9 @@ import (
 	"k8s.io/component-base/cli"
 )
 
+// https://github.com/kubernetes/sample-apiserver?tab=readme-ov-file#authentication-plugins
+import _ "k8s.io/client-go/plugin/pkg/client/auth"
+
 func main() {
 	ctx := genericapiserver.SetupSignalContext()
 	options := server.NewWardleServerOptions(os.Stdout, os.Stderr)
