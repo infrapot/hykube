@@ -76,7 +76,8 @@ type proxiedRESTOptionsGetter struct {
 // GetRESTOptions implements RESTOptionsGetter interface.
 func (g *proxiedRESTOptionsGetter) GetRESTOptions(resource schema.GroupResource, example runtime.Object) (generic.RESTOptions, error) {
 	etcdConfig, err := endpoint.Listen(context.TODO(), endpoint.Config{
-		Endpoint: g.dsn,
+		Endpoint:       g.dsn,
+		NotifyInterval: 1 * time.Second,
 	})
 	if err != nil {
 		return generic.RESTOptions{}, err

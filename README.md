@@ -59,14 +59,14 @@ Unarguably, one of the best parts of K8S is the API interface and its ecosystem,
 C4Container
     title Hykube containers
 
-    Container(kubectl, "kubectl")
+    Container(kubectl, "kubectl", "Extension")
 
     Person(user, "Hykube user")
 
 
     Container_Boundary(c1, "Infrastructure") {
         Container_Boundary(c2, "Control Plane") {
-            Container(api, "API Server")
+            Container(api, "API Server", "Extension")
             ContainerDb(db, "DB")
             Container(pm, "Plugin Manager")
             Container_Ext(p1, "Plugin")
