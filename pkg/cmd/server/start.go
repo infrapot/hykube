@@ -69,7 +69,6 @@ type WardleServerOptions struct {
 }
 
 type proxiedRESTOptionsGetter struct {
-	scheme         *runtime.Scheme
 	dsn            string
 	groupVersioner runtime.GroupVersioner
 }
@@ -82,9 +81,10 @@ func (g *proxiedRESTOptionsGetter) GetRESTOptions(resource schema.GroupResource,
 	if err != nil {
 		return generic.RESTOptions{}, err
 	}
-	s := json.NewSerializer(json.DefaultMetaFactory, g.scheme, g.scheme, false)
-	codec := serializer.NewCodecFactory(g.scheme).
+	s := json.NewSerializer(json.DefaultMetaFactory, apiserver.Scheme, apiserver.Scheme, false)
+	codec := serializer.NewCodecFactory(apiserver.Scheme).
 		CodecForVersions(s, s, g.groupVersioner, g.groupVersioner)
+
 	restOptions := generic.RESTOptions{
 		ResourcePrefix:            resource.String(),
 		Decorator:                 genericregistry.StorageWithCacher(),
@@ -134,7 +134,6 @@ func NewWardleServerOptions(out, errOut io.Writer) *WardleServerOptions {
 		StdOut: out,
 		StdErr: errOut,
 	}
-	//o.RecommendedOptions.Etcd.StorageConfig.EncodeVersioner = runtime.NewMultiGroupVersioner(v1alpha1.SchemeGroupVersion, schema.GroupKind{Group: v1alpha1.GroupName})
 	o.RecommendedOptions.Etcd = nil
 	return o
 }
@@ -261,9 +260,8 @@ func (o *WardleServerOptions) Config() (*apiserver.Config, error) {
 	serverConfig.EffectiveVersion = utilversion.DefaultComponentGlobalsRegistry.EffectiveVersionFor(apiserver.WardleComponentName)
 
 	serverConfig.RESTOptionsGetter = &proxiedRESTOptionsGetter{
-		scheme:         nil,
 		dsn:            "sqlite://file.db",
-		groupVersioner: nil,
+		groupVersioner: runtime.NewMultiGroupVersioner(v1alpha1.SchemeGroupVersion, schema.GroupKind{Group: v1alpha1.GroupName}),
 	}
 
 	if err := o.RecommendedOptions.ApplyTo(serverConfig); err != nil {
