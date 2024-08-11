@@ -26,3 +26,8 @@ go.work.sum
 bin
 
 apiserver.local.config
+
+kine.*
+
+artifacts/simple-image/*
+!artifacts/simple-image/Dockerfile

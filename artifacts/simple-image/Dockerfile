@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM fedora
+FROM --platform=linux/amd64 fedora
 ADD kube-sample-apiserver /
 ENTRYPOINT ["/kube-sample-apiserver"]
