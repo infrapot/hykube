@@ -24,10 +24,12 @@ go.work.sum
 .idea
 
 bin
+vendor
 
 apiserver.local.config
 
 kine.*
+*.db
 
-artifacts/simple-image/*
-!artifacts/simple-image/Dockerfile
+artifacts/apiserver-image/*
+!artifacts/apiserver-image/Dockerfile

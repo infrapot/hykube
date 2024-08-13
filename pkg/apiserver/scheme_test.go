@@ -19,10 +19,10 @@ package apiserver
 import (
 	"testing"
 
-	wardlefuzzer "hykube.io/apiserver/pkg/apis/wardle/fuzzer"
+	hykubefuzzer "hykube.io/apiserver/pkg/apis/hykube/fuzzer"
 	"k8s.io/apimachinery/pkg/api/apitesting/roundtrip"
 )
 
 func TestRoundTripTypes(t *testing.T) {
-	roundtrip.RoundTripTestForScheme(t, Scheme, wardlefuzzer.Funcs)
+	roundtrip.RoundTripTestForScheme(t, Scheme, hykubefuzzer.Funcs)
 }

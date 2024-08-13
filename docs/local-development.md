@@ -7,6 +7,10 @@ This document will take you through setting up and trying the sample apiserver o
 - K8S version **1.30** + Docker
 - Go **1.22** or later
 
+## Code generation
+
+If you change the API object type definitions in `pkg/apis/.../types.go` files then you will need to update the files generated from the type definitions. To do this, first call `go mod vendor` to get correct vendored deps and then invoke `./hack/update-codegen.sh` with `hykube` as your current working directory; the script takes no arguments.
+
 ## Build the binary
 
 If you work on macOS, invoke the following command first to install GCC:
@@ -19,70 +23,70 @@ Next we will want to create a new binary to both test we can build the server an
 
 From the root of this repo, where ```main.go``` is located, run the following command (on macOS):
 ```shell
-CC=x86_64-unknown-linux-gnu-gcc CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -a -o artifacts/simple-image/kube-sample-apiserver 
+CC=x86_64-unknown-linux-gnu-gcc CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -a -o artifacts/apiserver-image/hykube-apiserver
 ```
 
 On Linux, run the following command:
 ```shell
-CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -a -o artifacts/simple-image/kube-sample-apiserver 
+CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -a -o artifacts/apiserver-image/hykube-apiserver
 ```
 
-if everything went well, you should have a binary called ```kube-sample-apiserver``` present in your current directory.
+if everything went well, you should have a binary called `hykube-apiserver` present in `artifacts/simple-image`.
 
 ## Build the container image
 
 Using the binary we just built, we will now create a Docker image and push it to our Dockerhub registry so that we deploy it to our cluster.
-There is a sample ```Dockerfile``` located in ```artifacts/simple-image``` we will use this to build our own image.
+There is a sample `Dockerfile` located in `artifacts/apiserver-image` we will use this to build our own image.
 
 Again from the root of this repo run the following commands:
 ```
-docker build -t kube-sample-apiserver:latest ./artifacts/simple-image
+docker build -t hykube-apiserver:latest ./artifacts/simple-image
 ```
 
 ## Deploy to K8S
 
-We will need to create several objects in order to setup the sample apiserver so you will need to ensure you have the ```kubectl``` tool installed. [Install kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
+We will need to create several objects in order to setup the API server, so you will need to ensure you have the `kubectl` tool installed. [Install kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
 
-```
+```shell
 # create the namespace to run the apiserver in
-kubectl create ns wardle
+kubectl create ns hykube
 
 # create the service account used to run the server
-kubectl create -f artifacts/example/sa.yaml -n wardle
+kubectl create -f artifacts/deployment/sa.yaml -n hykube
 
 # create the rolebindings that allow the service account user to delegate authz back to the kubernetes master for incoming requests to the apiserver
-kubectl create -f artifacts/example/auth-delegator.yaml -n kube-system
-kubectl create -f artifacts/example/auth-reader.yaml -n kube-system
+kubectl create -f artifacts/deployment/auth-delegator.yaml -n kube-system
+kubectl create -f artifacts/deployment/auth-reader.yaml -n kube-system
 
 # create rbac roles and clusterrolebinding that allow the service account user to use admission webhooks
-kubectl create -f artifacts/example/rbac.yaml
-kubectl create -f artifacts/example/rbac-bind.yaml
+kubectl create -f artifacts/deployment/rbac.yaml
+kubectl create -f artifacts/deployment/rbac-bind.yaml
 
 # create the service and replication controller
-kubectl create -f artifacts/example/deployment.yaml -n wardle
-kubectl create -f artifacts/example/service.yaml -n wardle
+kubectl create -f artifacts/deployment/deployment.yaml -n hykube
+kubectl create -f artifacts/deployment/service.yaml -n hykube
 
 # create the apiservice object that tells kubernetes about your api extension and where in the cluster the server is located
-kubectl create -f artifacts/example/apiservice.yaml
+kubectl create -f artifacts/deployment/apiservice.yaml
 ```
 
 ## Test that your setup has worked
 
-You should now be able to create the resource type ```Flunder``` which is the resource type registered by the sample apiserver.
+You should now be able to create the resource type `Provider` which is the resource type registered by the API server.
 
-```
-kubectl create -f artifacts/flunders/01-flunder.yaml
-# outputs flunder "my-first-flunder" created
+```shell
+kubectl create -f artifacts/providers/aws-provider.yaml
+# outputs provider "aws-provider" created
 ```
 
 You can then get this resource by running:
 
-```
-kubectl get flunder my-first-flunder
+```shell
+kubectl get provider aws-provider
 
 #outputs
 # NAME               KIND
-# my-first-flunder   Flunder.v1alpha1.wardle.example.com
+# aws-provider   Provider.v1alpha1.hykube.io
 ```
 
 ## Local binary run
@@ -122,7 +126,7 @@ clusters:
 
 Run binary with following arguments:
 ```shell
-kube-sample-apiserver --secure-port 8443 --v=7 \
+hykube-apiserver --secure-port 8443 --v=7 \
    --client-ca-file ca.crt \
    --kubeconfig ./config \
    --authentication-kubeconfig ./config \
@@ -133,5 +137,5 @@ kube-sample-apiserver --secure-port 8443 --v=7 \
 Issue a sample call to API Server:
 ```shell
 wget -O- --no-check-certificate --certificate client.crt --private-key client.key \
-https://localhost:8443/apis/wardle.example.com/v1beta1/namespaces/default/flunders
+https://localhost:8443/apis/hykube.io/v1alpha1/namespaces/default/providers
 ```

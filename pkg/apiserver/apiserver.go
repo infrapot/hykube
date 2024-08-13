@@ -17,6 +17,7 @@ limitations under the License.
 package apiserver
 
 import (
+	"hykube.io/apiserver/pkg/apis/hykube"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -24,11 +25,9 @@ import (
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 
-	"hykube.io/apiserver/pkg/apis/wardle"
-	"hykube.io/apiserver/pkg/apis/wardle/install"
-	wardleregistry "hykube.io/apiserver/pkg/registry"
-	fischerstorage "hykube.io/apiserver/pkg/registry/wardle/fischer"
-	flunderstorage "hykube.io/apiserver/pkg/registry/wardle/flunder"
+	"hykube.io/apiserver/pkg/apis/hykube/install"
+	hykuberegistry "hykube.io/apiserver/pkg/registry"
+	providerstorage "hykube.io/apiserver/pkg/registry/hykube/provider"
 )
 
 var (
@@ -37,7 +36,7 @@ var (
 	// Codecs provides methods for retrieving codecs and serializers for specific
 	// versions and content types.
 	Codecs              = serializer.NewCodecFactory(Scheme)
-	WardleComponentName = "wardle"
+	HykubeComponentName = "Hykube"
 )
 
 func init() {
@@ -69,8 +68,8 @@ type Config struct {
 	ExtraConfig   ExtraConfig
 }
 
-// WardleServer contains state for a Kubernetes cluster master/api server.
-type WardleServer struct {
+// HykubeServer contains state for a Kubernetes cluster master/api server.
+type HykubeServer struct {
 	GenericAPIServer *genericapiserver.GenericAPIServer
 }
 
@@ -94,27 +93,22 @@ func (cfg *Config) Complete() CompletedConfig {
 	return CompletedConfig{&c}
 }
 
-// New returns a new instance of WardleServer from the given config.
-func (c completedConfig) New() (*WardleServer, error) {
-	genericServer, err := c.GenericConfig.New("sample-apiserver", genericapiserver.NewEmptyDelegate())
+// New returns a new instance of HykubeServer from the given config.
+func (c completedConfig) New() (*HykubeServer, error) {
+	genericServer, err := c.GenericConfig.New("hykube", genericapiserver.NewEmptyDelegate())
 	if err != nil {
 		return nil, err
 	}
 
-	s := &WardleServer{
+	s := &HykubeServer{
 		GenericAPIServer: genericServer,
 	}
 
-	apiGroupInfo := genericapiserver.NewDefaultAPIGroupInfo(wardle.GroupName, Scheme, metav1.ParameterCodec, Codecs)
+	apiGroupInfo := genericapiserver.NewDefaultAPIGroupInfo(hykube.GroupName, Scheme, metav1.ParameterCodec, Codecs)
 
 	v1alpha1storage := map[string]rest.Storage{}
-	v1alpha1storage["flunders"] = wardleregistry.RESTInPeace(flunderstorage.NewREST(Scheme, c.GenericConfig.RESTOptionsGetter))
-	v1alpha1storage["fischers"] = wardleregistry.RESTInPeace(fischerstorage.NewREST(Scheme, c.GenericConfig.RESTOptionsGetter))
+	v1alpha1storage["providers"] = hykuberegistry.RESTInPeace(providerstorage.NewREST(Scheme, c.GenericConfig.RESTOptionsGetter))
 	apiGroupInfo.VersionedResourcesStorageMap["v1alpha1"] = v1alpha1storage
-
-	v1beta1storage := map[string]rest.Storage{}
-	v1beta1storage["flunders"] = wardleregistry.RESTInPeace(flunderstorage.NewREST(Scheme, c.GenericConfig.RESTOptionsGetter))
-	apiGroupInfo.VersionedResourcesStorageMap["v1beta1"] = v1beta1storage
 
 	if err := s.GenericAPIServer.InstallAPIGroup(&apiGroupInfo); err != nil {
 		return nil, err

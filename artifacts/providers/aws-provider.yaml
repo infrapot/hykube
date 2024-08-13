@@ -1,0 +1,6 @@
+apiVersion: hykube.io/v1alpha1
+kind: Provider
+metadata:
+  name: aws-provider
+  labels:
+    sample-label: "true"

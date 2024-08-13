@@ -19,24 +19,15 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/spf13/cobra"
 	"io"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/apimachinery/pkg/runtime/serializer/json"
-	"k8s.io/apiserver/pkg/registry/generic"
-	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
-	"k8s.io/apiserver/pkg/storage/storagebackend"
-	"k8s.io/apiserver/pkg/util/flowcontrol/request"
+	"k8s.io/component-base/featuregate"
 	"net"
-	"time"
 
-	"github.com/k3s-io/kine/pkg/endpoint"
-	"github.com/spf13/cobra"
-
-	"hykube.io/apiserver/pkg/admission/plugin/banflunder"
-	"hykube.io/apiserver/pkg/admission/wardleinitializer"
-	"hykube.io/apiserver/pkg/apis/wardle/v1alpha1"
+	"hykube.io/apiserver/pkg/admission/hykubeinitializer"
+	"hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
 	"hykube.io/apiserver/pkg/apiserver"
 	clientset "hykube.io/apiserver/pkg/generated/clientset/versioned"
 	informers "hykube.io/apiserver/pkg/generated/informers/externalversions"
@@ -50,15 +41,14 @@ import (
 	genericoptions "k8s.io/apiserver/pkg/server/options"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	utilversion "k8s.io/apiserver/pkg/util/version"
-	"k8s.io/component-base/featuregate"
 	baseversion "k8s.io/component-base/version"
 	netutils "k8s.io/utils/net"
 )
 
-const defaultEtcdPathPrefix = "/registry/wardle.example.com"
+const defaultEtcdPathPrefix = "/registry/hykube.io"
 
-// WardleServerOptions contains state for master/api server
-type WardleServerOptions struct {
+// HykubeServerOptions contains state for master/api server
+type HykubeServerOptions struct {
 	RecommendedOptions *genericoptions.RecommendedOptions
 
 	SharedInformerFactory informers.SharedInformerFactory
@@ -68,49 +58,7 @@ type WardleServerOptions struct {
 	AlternateDNS []string
 }
 
-type proxiedRESTOptionsGetter struct {
-	dsn            string
-	groupVersioner runtime.GroupVersioner
-}
-
-// GetRESTOptions implements RESTOptionsGetter interface.
-func (g *proxiedRESTOptionsGetter) GetRESTOptions(resource schema.GroupResource, example runtime.Object) (generic.RESTOptions, error) {
-	etcdConfig, err := endpoint.Listen(context.TODO(), endpoint.Config{
-		Endpoint:       g.dsn,
-		NotifyInterval: 1 * time.Second,
-	})
-	if err != nil {
-		return generic.RESTOptions{}, err
-	}
-	s := json.NewSerializer(json.DefaultMetaFactory, apiserver.Scheme, apiserver.Scheme, false)
-	codec := serializer.NewCodecFactory(apiserver.Scheme).
-		CodecForVersions(s, s, g.groupVersioner, g.groupVersioner)
-
-	restOptions := generic.RESTOptions{
-		ResourcePrefix:            resource.String(),
-		Decorator:                 genericregistry.StorageWithCacher(),
-		EnableGarbageCollection:   true,
-		DeleteCollectionWorkers:   1,
-		CountMetricPollPeriod:     time.Minute,
-		StorageObjectCountTracker: request.NewStorageObjectCountTracker(),
-		StorageConfig: &storagebackend.ConfigForResource{
-			GroupResource: resource,
-			Config: storagebackend.Config{
-				Prefix: "/kine/",
-				Codec:  codec,
-				Transport: storagebackend.TransportConfig{
-					ServerList:    etcdConfig.Endpoints,
-					TrustedCAFile: etcdConfig.TLSConfig.CAFile,
-					CertFile:      etcdConfig.TLSConfig.CertFile,
-					KeyFile:       etcdConfig.TLSConfig.KeyFile,
-				},
-			},
-		},
-	}
-	return restOptions, nil
-}
-
-func WardleVersionToKubeVersion(ver *version.Version) *version.Version {
+func HykubeVersionToKubeVersion(ver *version.Version) *version.Version {
 	if ver.Major() != 1 {
 		return nil
 	}
@@ -124,9 +72,9 @@ func WardleVersionToKubeVersion(ver *version.Version) *version.Version {
 	return mappedVer
 }
 
-// NewWardleServerOptions returns a new WardleServerOptions
-func NewWardleServerOptions(out, errOut io.Writer) *WardleServerOptions {
-	o := &WardleServerOptions{
+// NewHykubeServerOptions returns a new HykubeServerOptions
+func NewHykubeServerOptions(out, errOut io.Writer) *HykubeServerOptions {
+	o := &HykubeServerOptions{
 		RecommendedOptions: genericoptions.NewRecommendedOptions(
 			defaultEtcdPathPrefix,
 			apiserver.Codecs.LegacyCodec(v1alpha1.SchemeGroupVersion),
@@ -139,13 +87,13 @@ func NewWardleServerOptions(out, errOut io.Writer) *WardleServerOptions {
 	return o
 }
 
-// NewCommandStartWardleServer provides a CLI handler for 'start master' command
-// with a default WardleServerOptions.
-func NewCommandStartWardleServer(ctx context.Context, defaults *WardleServerOptions) *cobra.Command {
+// NewCommandStartHykubeServer provides a CLI handler for 'start master' command
+// with a default HykubeServerOptions.
+func NewCommandStartHykubeServer(ctx context.Context, defaults *HykubeServerOptions) *cobra.Command {
 	o := *defaults
 	cmd := &cobra.Command{
-		Short: "Launch a wardle API server",
-		Long:  "Launch a wardle API server",
+		Short: "Launch Hykube API server",
+		Long:  "Launch Hykube API server",
 		PersistentPreRunE: func(*cobra.Command, []string) error {
 			return utilversion.DefaultComponentGlobalsRegistry.Set()
 		},
@@ -156,7 +104,7 @@ func NewCommandStartWardleServer(ctx context.Context, defaults *WardleServerOpti
 			if err := o.Validate(args); err != nil {
 				return err
 			}
-			if err := o.RunWardleServer(c.Context()); err != nil {
+			if err := o.RunHykubeServer(c.Context()); err != nil {
 				return err
 			}
 			return nil
@@ -168,9 +116,9 @@ func NewCommandStartWardleServer(ctx context.Context, defaults *WardleServerOpti
 	o.RecommendedOptions.AddFlags(flags)
 
 	// The following lines demonstrate how to configure version compatibility and feature gates
-	// for the "Wardle" component, as an example of KEP-4330.
+	// for the "Hykube" component, as an example of KEP-4330.
 
-	// Create an effective version object for the "Wardle" component.
+	// Create an effective version object for the "Hykube" component.
 	// This initializes the binary version, the emulation version and the minimum compatibility version.
 	//
 	// Note:
@@ -179,39 +127,33 @@ func NewCommandStartWardleServer(ctx context.Context, defaults *WardleServerOpti
 	// - The minimum compatibility version specifies the minimum version that the component remains compatible with.
 	//
 	// Refer to KEP-4330 for more details: https://github.com/kubernetes/enhancements/blob/master/keps/sig-architecture/4330-compatibility-versions
-	defaultWardleVersion := "1.2"
-	// Register the "Wardle" component with the global component registry,
+	defaultHykubeVersion := "1.2"
+	// Register the "Hykube" component with the global component registry,
 	// associating it with its effective version and feature gate configuration.
 	// Will skip if the component has been registered, like in the integration test.
-	_, wardleFeatureGate := utilversion.DefaultComponentGlobalsRegistry.ComponentGlobalsOrRegister(
-		apiserver.WardleComponentName, utilversion.NewEffectiveVersion(defaultWardleVersion),
-		featuregate.NewVersionedFeatureGate(version.MustParse(defaultWardleVersion)))
+	_, hykubeFeatureGate := utilversion.DefaultComponentGlobalsRegistry.ComponentGlobalsOrRegister(
+		apiserver.HykubeComponentName, utilversion.NewEffectiveVersion(defaultHykubeVersion),
+		featuregate.NewVersionedFeatureGate(version.MustParse(defaultHykubeVersion)))
 
-	// Add versioned feature specifications for the "BanFlunder" feature.
+	// Add versioned feature specifications for a test feature.
 	// These specifications, together with the effective version, determine if the feature is enabled.
-	utilruntime.Must(wardleFeatureGate.AddVersioned(map[featuregate.Feature]featuregate.VersionedSpecs{
-		"BanFlunder": {
-			{Version: version.MustParse("1.2"), Default: true, PreRelease: featuregate.GA, LockToDefault: true},
-			{Version: version.MustParse("1.1"), Default: true, PreRelease: featuregate.Beta},
-			{Version: version.MustParse("1.0"), Default: false, PreRelease: featuregate.Alpha},
-		},
-	}))
+	utilruntime.Must(hykubeFeatureGate.AddVersioned(map[featuregate.Feature]featuregate.VersionedSpecs{}))
 
 	// Register the default kube component if not already present in the global registry.
 	_, _ = utilversion.DefaultComponentGlobalsRegistry.ComponentGlobalsOrRegister(utilversion.DefaultKubeComponent,
 		utilversion.NewEffectiveVersion(baseversion.DefaultKubeBinaryVersion), utilfeature.DefaultMutableFeatureGate)
 
-	// Set the emulation version mapping from the "Wardle" component to the kube component.
+	// Set the emulation version mapping from the "Hykube" component to the kube component.
 	// This ensures that the emulation version of the latter is determined by the emulation version of the former.
-	utilruntime.Must(utilversion.DefaultComponentGlobalsRegistry.SetEmulationVersionMapping(apiserver.WardleComponentName, utilversion.DefaultKubeComponent, WardleVersionToKubeVersion))
+	utilruntime.Must(utilversion.DefaultComponentGlobalsRegistry.SetEmulationVersionMapping(apiserver.HykubeComponentName, utilversion.DefaultKubeComponent, HykubeVersionToKubeVersion))
 
 	utilversion.DefaultComponentGlobalsRegistry.AddFlags(flags)
 
 	return cmd
 }
 
-// Validate validates WardleServerOptions
-func (o WardleServerOptions) Validate(args []string) error {
+// Validate validates HykubeServerOptions
+func (o *HykubeServerOptions) Validate(args []string) error {
 	errors := []error{}
 	errors = append(errors, o.RecommendedOptions.Validate()...)
 	errors = append(errors, utilversion.DefaultComponentGlobalsRegistry.Validate()...)
@@ -219,19 +161,12 @@ func (o WardleServerOptions) Validate(args []string) error {
 }
 
 // Complete fills in fields required to have valid data
-func (o *WardleServerOptions) Complete() error {
-	if utilversion.DefaultComponentGlobalsRegistry.FeatureGateFor(apiserver.WardleComponentName).Enabled("BanFlunder") {
-		// register admission plugins
-		banflunder.Register(o.RecommendedOptions.Admission.Plugins)
-
-		// add admission plugins to the RecommendedPluginOrder
-		o.RecommendedOptions.Admission.RecommendedPluginOrder = append(o.RecommendedOptions.Admission.RecommendedPluginOrder, "BanFlunder")
-	}
+func (o *HykubeServerOptions) Complete() error {
 	return nil
 }
 
-// Config returns config for the api server given WardleServerOptions
-func (o *WardleServerOptions) Config() (*apiserver.Config, error) {
+// Config returns config for the api server given HykubeServerOptions
+func (o *HykubeServerOptions) Config() (*apiserver.Config, error) {
 	// TODO have a "real" external address
 	if err := o.RecommendedOptions.SecureServing.MaybeDefaultWithSelfSignedCerts("localhost", o.AlternateDNS, []net.IP{netutils.ParseIPSloppy("127.0.0.1")}); err != nil {
 		return nil, fmt.Errorf("error creating self-signed certificates: %v", err)
@@ -244,21 +179,21 @@ func (o *WardleServerOptions) Config() (*apiserver.Config, error) {
 		}
 		informerFactory := informers.NewSharedInformerFactory(client, c.LoopbackClientConfig.Timeout)
 		o.SharedInformerFactory = informerFactory
-		return []admission.PluginInitializer{wardleinitializer.New(informerFactory)}, nil
+		return []admission.PluginInitializer{hykubeinitializer.New(informerFactory)}, nil
 	}
 
 	serverConfig := genericapiserver.NewRecommendedConfig(apiserver.Codecs)
 
 	serverConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(sampleopenapi.GetOpenAPIDefinitions, openapi.NewDefinitionNamer(apiserver.Scheme))
-	serverConfig.OpenAPIConfig.Info.Title = "Wardle"
+	serverConfig.OpenAPIConfig.Info.Title = "Hykube"
 	serverConfig.OpenAPIConfig.Info.Version = "0.1"
 
 	serverConfig.OpenAPIV3Config = genericapiserver.DefaultOpenAPIV3Config(sampleopenapi.GetOpenAPIDefinitions, openapi.NewDefinitionNamer(apiserver.Scheme))
-	serverConfig.OpenAPIV3Config.Info.Title = "Wardle"
+	serverConfig.OpenAPIV3Config.Info.Title = "Hykube"
 	serverConfig.OpenAPIV3Config.Info.Version = "0.1"
 
 	serverConfig.FeatureGate = utilversion.DefaultComponentGlobalsRegistry.FeatureGateFor(utilversion.DefaultKubeComponent)
-	serverConfig.EffectiveVersion = utilversion.DefaultComponentGlobalsRegistry.EffectiveVersionFor(apiserver.WardleComponentName)
+	serverConfig.EffectiveVersion = utilversion.DefaultComponentGlobalsRegistry.EffectiveVersionFor(apiserver.HykubeComponentName)
 
 	serverConfig.RESTOptionsGetter = &proxiedRESTOptionsGetter{
 		dsn:            "sqlite://file.db",
@@ -276,8 +211,8 @@ func (o *WardleServerOptions) Config() (*apiserver.Config, error) {
 	return config, nil
 }
 
-// RunWardleServer starts a new WardleServer given WardleServerOptions
-func (o WardleServerOptions) RunWardleServer(ctx context.Context) error {
+// RunHykubeServer starts a new HykubeServer given HykubeServerOptions
+func (o *HykubeServerOptions) RunHykubeServer(ctx context.Context) error {
 	config, err := o.Config()
 	if err != nil {
 		return err

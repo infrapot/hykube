@@ -99,3 +99,8 @@ C4Container
 ## Development
 
 Go to [local-development](./docs/local-development.md) to read more on how to perform local development.
+
+## License
+
+The project is licensed by GNU AFFERO GENERAL PUBLIC LICENSE.
+For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
