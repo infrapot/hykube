@@ -9,7 +9,7 @@ The goal of the project is to rework controller management mechanisms in Kuberne
 
 That's why the project keeps the K8S API server and comes with a suite of additional commands to control the resource synchronization process, like [OpenTofu](https://opentofu.org/) does, with three separate steps:
 
-1. Write: Describe necessary resources, which can be K8S pods but also other resources.
+1. Write: Describe necessary resources, which can be cloud resources but also other parts of an infrastructure.
 2. Plan: Create an execution plan describing the infrastructure it will create, update, and delete, based on the configuration and existing infrastructure.
 3. Apply: On approval, perform proposed operations in the correct order, respecting resource dependencies.
 
