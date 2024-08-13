@@ -1,7 +1,7 @@
 # hykube
 Kubernetes control plane for hyperscaling needs.
 
-Supports Kubernetes: **1.30**
+Supports Kubernetes: **1.30+**
 
 ## Project goals
 
