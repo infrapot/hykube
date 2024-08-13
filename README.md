@@ -34,7 +34,7 @@ flowchart LR
     OS -- Observe changes --> DS;
 ```
 
-The reason for having this automatic loop is to be able to react to a dynamically changing environment. If a lost machine is detected and it's determined that pods are no longer available, the cluster tries to restore automatically to its desired state.
+The reason for having this automatic loop is to be able to react to a dynamically changing environment. If a lost machine is detected, and it's determined that pods are no longer available, the cluster tries to restore automatically to its desired state.
 
 Within complex K8S configurations, the watching mechanism on endpoints requires the highest amount of resources, as [shown by OpenAI](https://openai.com/index/scaling-kubernetes-to-7500-nodes/).
 
@@ -102,5 +102,5 @@ Go to [local-development](./docs/local-development.md) to read more on how to pe
 
 ## License
 
-The project is licensed by GNU AFFERO GENERAL PUBLIC LICENSE.
+The project license is GNU AFFERO GENERAL PUBLIC LICENSE.
 For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
