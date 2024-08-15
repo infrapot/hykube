@@ -40,7 +40,7 @@ There is a sample `Dockerfile` located in `artifacts/apiserver-image` we will us
 
 Again from the root of this repo run the following commands:
 ```
-docker build -t hykube-apiserver:latest ./artifacts/simple-image
+docker build -t hykube-apiserver:latest ./artifacts/apiserver-image
 ```
 
 ## Deploy to K8S

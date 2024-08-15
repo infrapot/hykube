@@ -54,7 +54,14 @@ Another example of K8S limitations is the issue with handling high amounts of CR
 
 Unarguably, one of the best parts of K8S is the API interface and its ecosystem, which allows building complex products. A high number of engineers are aware of the `kubectl` command tool or [Helm](https://helm.sh/) package manager.
 
+## Why not IxC?
+[Infrastructure from Code (IfC)](https://infrastructurefromcode.com/) is a relatively new trend that is likely to grow in the coming years, although [the current projects](https://architectelevator.com/cloud/iac-ifc-trends/) don't seem mature enough to be incorporated into Hykube. Managing vast infrastructure is a complex task that has historically been kept separate from application logic and maintained by different teams. However, with the popularization of IfC/IwC, there may be opportunities to change this approach, enabling more comprehensive management of software projects that are better aligned with [DDD](https://martinfowler.com/bliki/DomainDrivenDesign.html).
+
 ## High Level Architecture
+
+The project consists of two parts:
+* Kubernetes API extension with custom resources and resource lifecycle handling. No controllers are used, as they can limit performance
+* `kubectl` extension to add new commands for managing provider resources
 
 ```mermaid
 
@@ -95,6 +102,10 @@ C4Container
 
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
 ```
+
+The project introduces two types of resources:
+* Provider - Configures supported infrastructure resources
+* Resource - A meta-type that abstracts a resource type supported by a provider. Each resource type supported by a provider has its own definition in Hykube
 
 ## Development
 
