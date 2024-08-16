@@ -18,8 +18,12 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/go-resty/resty/v2"
 	"hykube.io/apiserver/pkg/apis/hykube"
+	"k8s.io/klog/v2"
+	"time"
 
 	"hykube.io/apiserver/pkg/apis/hykube/validation"
 	"k8s.io/apimachinery/pkg/fields"
@@ -33,20 +37,28 @@ import (
 
 // NewStrategy creates and returns a providerStrategy instance
 func NewStrategy(typer runtime.ObjectTyper) providerStrategy {
-	return providerStrategy{typer, names.SimpleNameGenerator}
+	client := resty.New().
+		SetRetryCount(3).
+		SetRetryWaitTime(1 * time.Second)
+
+	return providerStrategy{
+		typer,
+		names.SimpleNameGenerator,
+		client,
+	}
 }
 
-// GetAttrs returns labels.Set, fields.Set, and error in case the given runtime.Object is not a Povider
+// GetAttrs returns labels.Set, fields.Set, and error in case the given runtime.Object is not a Provider
 func GetAttrs(obj runtime.Object) (labels.Set, fields.Set, error) {
-	apiserver, ok := obj.(*hykube.Provider)
+	apiServer, ok := obj.(*hykube.Provider)
 	if !ok {
 		return nil, nil, fmt.Errorf("given object is not a Provider")
 	}
-	return labels.Set(apiserver.ObjectMeta.Labels), SelectableFields(apiserver), nil
+	return labels.Set(apiServer.ObjectMeta.Labels), SelectableFields(apiServer), nil
 }
 
 // MatchProvider is the filter used by the generic etcd backend to watch events
-// from etcd to clients of the apiserver only interested in specific labels/fields.
+// from etcd to clients of the apiServer only interested in specific labels/fields.
 func MatchProvider(label labels.Selector, field fields.Selector) storage.SelectionPredicate {
 	return storage.SelectionPredicate{
 		Label:    label,
@@ -63,13 +75,30 @@ func SelectableFields(obj *hykube.Provider) fields.Set {
 type providerStrategy struct {
 	runtime.ObjectTyper
 	names.NameGenerator
+
+	client *resty.Client
 }
 
 func (providerStrategy) NamespaceScoped() bool {
 	return true
 }
 
-func (providerStrategy) PrepareForCreate(ctx context.Context, obj runtime.Object) {
+func (p providerStrategy) PrepareForCreate(ctx context.Context, obj runtime.Object) {
+	fullURLFile := "https://releases.hashicorp.com/terraform-provider-aws/5.62.0/terraform-provider-aws_5.62.0_darwin_arm64.zip"
+
+	jj, _ := json.Marshal(obj)
+	klog.Info(string(jj))
+
+	_, err := p.client.R().
+		SetOutput("aws-provider.zip").
+		Get(fullURLFile)
+	if err != nil {
+		klog.ErrorS(err, "Couldn't download file")
+		return
+	}
+
+	klog.Info("Downloaded a provider from: %s", fullURLFile)
+
 }
 
 func (providerStrategy) PrepareForUpdate(ctx context.Context, obj, old runtime.Object) {
