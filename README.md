@@ -48,7 +48,11 @@ Even though [Kubernetes Cluster API](https://cluster-api.sigs.k8s.io/) exists an
 
 ### CRDs fragmentation
 
-Another example of K8S limitations is the issue with handling high amounts of CRDs, which cause fragmentation of libraries to handle hyperscaler resources, e.g., Crossplane has [150+ libraries to handle AWS services](https://marketplace.upbound.io/providers/upbound/provider-family-aws/v1.10.0/providers).
+Another example of K8S limitations is the issue with handling high amounts of CRDs, which cause fragmentation of libraries to handle hyperscaler resources, e.g., Crosspl   ane has [150+ libraries to handle AWS services](https://marketplace.upbound.io/providers/upbound/provider-family-aws/v1.10.0/providers).
+
+### ETCD is hard to manage
+
+[ETCD](https://etcd.io/) uses [Raft protocol](https://raft.github.io/) to maintain state. This adds additional complexity when creating disaster recovery (DR) plans, as setting up a multi-site active/active mode is required, with limited options for pilot-light or warm-standby configurations. Additionally, it introduces another data storage system to manage.
 
 ## Kubernetes good parts
 
@@ -106,6 +110,14 @@ C4Container
 The project introduces two types of resources:
 * Provider - Configures supported infrastructure resources
 * Resource - A meta-type that abstracts a resource type supported by a provider. Each resource type supported by a provider has its own definition in Hykube
+
+Hykube uses [kine](https://github.com/k3s-io/kine) to replace ETCD. Kine supports following DBs:
+* SQLite
+* PostgreSQL (with tutorials on using [YugabyteDB](https://dzone.com/articles/kubernetes-evolution-transitioning-from-etcd-to-di))
+* MySQL/MariaDB
+* NATS
+
+Using Hykube with SQLite enables users to manage infrastructure on the go, with all components running directly on a client machine.
 
 ## Development
 
