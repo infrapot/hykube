@@ -39,7 +39,7 @@ Using the binary we just built, we will now create a Docker image and push it to
 There is a sample `Dockerfile` located in `artifacts/apiserver-image` we will use this to build our own image.
 
 Again from the root of this repo run the following commands:
-```
+```shell
 docker build -t hykube-apiserver:latest ./artifacts/apiserver-image
 ```
 

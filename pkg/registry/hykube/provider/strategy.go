@@ -17,13 +17,24 @@ limitations under the License.
 package provider
 
 import (
+	"archive/zip"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/hashicorp/terraform/providers"
+	"github.com/zclconf/go-cty/cty"
 	"hykube.io/apiserver/pkg/apis/hykube"
+	"io"
 	"k8s.io/klog/v2"
+	"os"
+	"os/exec"
 	"time"
+
+	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-plugin"
+	tfplugin "github.com/hashicorp/terraform/plugin"
+	tfversion "github.com/hashicorp/terraform/version"
 
 	"hykube.io/apiserver/pkg/apis/hykube/validation"
 	"k8s.io/apimachinery/pkg/fields"
@@ -89,16 +100,113 @@ func (p providerStrategy) PrepareForCreate(ctx context.Context, obj runtime.Obje
 	jj, _ := json.Marshal(obj)
 	klog.Info(string(jj))
 
+	filename := "aws-provider.zip"
 	_, err := p.client.R().
-		SetOutput("aws-provider.zip").
+		SetOutput(filename).
 		Get(fullURLFile)
 	if err != nil {
 		klog.ErrorS(err, "Couldn't download file")
 		return
 	}
 
-	klog.Info("Downloaded a provider from: %s", fullURLFile)
+	klog.Infof("Downloaded a provider from: %s", fullURLFile)
 
+	providerFilename, err := p.extractFile(err, filename)
+	if err != nil {
+		klog.ErrorS(err, "Couldn't extract file")
+		return
+	}
+	schema, err := p.getProviderSchema(providerFilename, true)
+	if err != nil {
+		klog.ErrorS(err, "Couldn't get provider schema")
+		return
+	}
+
+	klog.Infof("%v", schema)
+}
+
+func (p providerStrategy) extractFile(err error, filename string) (string, error) {
+	r, err := zip.OpenReader(filename)
+	if err != nil {
+		return "", fmt.Errorf("couldn't open zip file: %w", err)
+	}
+	defer r.Close()
+	providerFilename := ""
+	for _, f := range r.File {
+		if f.Name == "LICENSE.txt" {
+			continue
+		}
+		rc, err := f.Open()
+		if err != nil {
+			return "", fmt.Errorf("couldn't open file: %w", err)
+		}
+		defer rc.Close()
+		f, err := os.OpenFile(
+			f.Name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			return "", fmt.Errorf("couldn't open new file file: %w", err)
+		}
+		defer f.Close()
+		_, err = io.Copy(f, rc)
+		if err != nil {
+			return "", fmt.Errorf("couldn't copy file: %w", err)
+		}
+		providerFilename = f.Name()
+	}
+	if providerFilename == "" {
+		return "", fmt.Errorf("no provider file found")
+	}
+	return providerFilename, nil
+}
+
+func (p providerStrategy) getProviderSchema(providerFilename string, verbose bool) (*providers.GetSchemaResponse, error) {
+	options := hclog.LoggerOptions{
+		Name:   "plugin",
+		Level:  hclog.Error,
+		Output: os.Stdout,
+	}
+	if verbose {
+		options.Level = hclog.Trace
+	}
+	logger := hclog.New(&options)
+	client := plugin.NewClient(
+		&plugin.ClientConfig{
+			Cmd:              exec.Command(providerFilename),
+			HandshakeConfig:  tfplugin.Handshake,
+			VersionedPlugins: tfplugin.VersionedPlugins,
+			Managed:          true,
+			Logger:           logger,
+			AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
+			AutoMTLS:         true,
+		})
+	rpcClient, err := client.Client()
+	if err != nil {
+		return nil, err
+	}
+	raw, err := rpcClient.Dispense(tfplugin.ProviderPluginName)
+	if err != nil {
+		return nil, err
+	}
+
+	provider := raw.(*tfplugin.GRPCProvider)
+
+	schema := provider.GetSchema()
+
+	config, err := schema.Provider.Block.CoerceValue(cty.ObjectVal(map[string]cty.Value{
+		"region":                 cty.StringVal(""),
+		"skip_region_validation": cty.True,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	provider.Configure(providers.ConfigureRequest{
+		TerraformVersion: tfversion.Version,
+		Config:           config,
+	})
+
+	client.Kill()
+
+	return &schema, nil
 }
 
 func (providerStrategy) PrepareForUpdate(ctx context.Context, obj, old runtime.Object) {
