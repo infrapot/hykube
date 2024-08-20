@@ -23,19 +23,22 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/hashicorp/terraform/providers"
-	"github.com/zclconf/go-cty/cty"
 	"hykube.io/apiserver/pkg/apis/hykube"
 	"io"
+	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	"os"
 	"os/exec"
 	"time"
 
+	apiextensionv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 	tfplugin "github.com/hashicorp/terraform/plugin"
-	tfversion "github.com/hashicorp/terraform/version"
-
 	"hykube.io/apiserver/pkg/apis/hykube/validation"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
@@ -95,34 +98,42 @@ func (providerStrategy) NamespaceScoped() bool {
 }
 
 func (p providerStrategy) PrepareForCreate(ctx context.Context, obj runtime.Object) {
-	fullURLFile := "https://releases.hashicorp.com/terraform-provider-aws/5.62.0/terraform-provider-aws_5.62.0_darwin_arm64.zip"
+	go func() { // TODO: move to events post created
+		fullURLFile := "https://releases.hashicorp.com/terraform-provider-aws/5.62.0/terraform-provider-aws_5.62.0_linux_amd64.zip" // TODO: detect latest version by default
 
-	jj, _ := json.Marshal(obj)
-	klog.Info(string(jj))
+		jj, _ := json.Marshal(obj)
+		klog.Info(string(jj))
 
-	filename := "aws-provider.zip"
-	_, err := p.client.R().
-		SetOutput(filename).
-		Get(fullURLFile)
-	if err != nil {
-		klog.ErrorS(err, "Couldn't download file")
-		return
-	}
+		filename := "aws-provider.zip"
+		_, err := p.client.R().
+			SetOutput(filename).
+			Get(fullURLFile)
+		if err != nil {
+			klog.ErrorS(err, "Couldn't download file")
+			return
+		}
 
-	klog.Infof("Downloaded a provider from: %s", fullURLFile)
+		klog.Infof("Downloaded a provider from: %s", fullURLFile)
 
-	providerFilename, err := p.extractFile(err, filename)
-	if err != nil {
-		klog.ErrorS(err, "Couldn't extract file")
-		return
-	}
-	schema, err := p.getProviderSchema(providerFilename, true)
-	if err != nil {
-		klog.ErrorS(err, "Couldn't get provider schema")
-		return
-	}
+		providerFilename, err := p.extractFile(err, filename)
+		if err != nil {
+			klog.ErrorS(err, "Couldn't extract file")
+			return
+		}
 
-	klog.Infof("%v", schema)
+		os.Setenv("AWS_ACCESS_KEY_ID", "dummy")
+		os.Setenv("AWS_SECRET_ACCESS_KEY", "dummy")
+
+		schema, err := p.getProviderSchema(providerFilename, false)
+		if err != nil {
+			klog.ErrorS(err, "Couldn't get provider schema")
+			return
+		}
+
+		err = p.addCDRs(schema)
+
+		klog.Infof("%v", schema)
+	}()
 }
 
 func (p providerStrategy) extractFile(err error, filename string) (string, error) {
@@ -171,7 +182,7 @@ func (p providerStrategy) getProviderSchema(providerFilename string, verbose boo
 	logger := hclog.New(&options)
 	client := plugin.NewClient(
 		&plugin.ClientConfig{
-			Cmd:              exec.Command(providerFilename),
+			Cmd:              exec.Command("/" + providerFilename),
 			HandshakeConfig:  tfplugin.Handshake,
 			VersionedPlugins: tfplugin.VersionedPlugins,
 			Managed:          true,
@@ -192,21 +203,42 @@ func (p providerStrategy) getProviderSchema(providerFilename string, verbose boo
 
 	schema := provider.GetSchema()
 
-	config, err := schema.Provider.Block.CoerceValue(cty.ObjectVal(map[string]cty.Value{
-		"region":                 cty.StringVal(""),
-		"skip_region_validation": cty.True,
-	}))
-	if err != nil {
-		return nil, err
-	}
-	provider.Configure(providers.ConfigureRequest{
-		TerraformVersion: tfversion.Version,
-		Config:           config,
-	})
-
 	client.Kill()
 
 	return &schema, nil
+}
+
+func (p providerStrategy) addCDRs(schema *providers.GetSchemaResponse) error {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		return err
+	}
+
+	crdClient, err := clientset.NewForConfig(config)
+
+	CRDPlural := "VPCs"
+	CRDGroup := "aws.hykube.io"
+	CRDVersion := "v1alpha1"
+	FullCRDName := CRDPlural + "." + CRDGroup
+
+	crd := &apiextensionv1beta1.CustomResourceDefinition{
+		ObjectMeta: meta_v1.ObjectMeta{Name: FullCRDName},
+		Spec: apiextensionv1beta1.CustomResourceDefinitionSpec{
+			Group:   CRDGroup,
+			Version: CRDVersion,
+			Scope:   apiextensionv1beta1.NamespaceScoped,
+			Names: apiextensionv1beta1.CustomResourceDefinitionNames{
+				Plural: CRDPlural,
+				Kind:   "VPC",
+			},
+		},
+	}
+
+	_, err = crdClient.ApiextensionsV1beta1().CustomResourceDefinitions().Create(context.TODO(), crd, meta_v1.CreateOptions{})
+	if err != nil && apierrors.IsAlreadyExists(err) {
+		return nil
+	}
+	return err
 }
 
 func (providerStrategy) PrepareForUpdate(ctx context.Context, obj, old runtime.Object) {
