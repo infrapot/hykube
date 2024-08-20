@@ -12,3 +12,6 @@ rules:
 - apiGroups: ["flowcontrol.apiserver.k8s.io"]
   resources: ['prioritylevelconfigurations', 'flowschemas']
   verbs: ['list', 'watch']
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ['customresourcedefinitions']
+  verbs: ['list', 'watch', 'list', 'create', 'update', 'delete']
