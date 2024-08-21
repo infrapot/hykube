@@ -81,8 +81,8 @@ C4Container
         Container_Boundary(c2, "Control Plane") {
             Container(api, "API Server", "Extension")
             ContainerDb(db, "DB")
-            Container(pm, "Plugin Manager")
-            Container_Ext(p1, "Plugin")
+            Container(pm, "Provider Manager")
+            Container_Ext(p1, "Provider")
         }
 
         Container_Boundary(dep, "Deployment env") {
