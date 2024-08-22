@@ -23,7 +23,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	types "k8s.io/apimachinery/pkg/types"
 	watch2 "k8s.io/apimachinery/pkg/watch"
 	"k8s.io/apiserver/pkg/endpoints/request"
 	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
@@ -61,11 +60,11 @@ func (p *watcher) Start() {
 
 				key, err := p.store.KeyFunc(ctx, provider.Name)
 				if err != nil {
-					klog.ErrorS(err, "cannot update provider")
+					klog.ErrorS(err, "cannot generate key")
 					continue
 				}
 
-				preconditions := storage.Preconditions{UID: (*types.UID)(&provider.Name)}
+				preconditions := storage.Preconditions{UID: &provider.UID, ResourceVersion: &provider.ResourceVersion}
 
 				out := p.store.NewFunc()
 				err = p.store.Storage.GuaranteedUpdate(
@@ -83,6 +82,10 @@ func (p *watcher) Start() {
 					false, // watcher doesn't get notified if it's' dry run
 					nil,
 				)
+				if err != nil {
+					klog.ErrorS(err, "cannot update provider")
+					continue
+				}
 			}
 		}
 	}()
