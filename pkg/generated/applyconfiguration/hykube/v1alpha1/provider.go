@@ -12,7 +12,6 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 package v1alpha1
 
 import (
-	hykubev1alpha1 "hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	v1 "k8s.io/client-go/applyconfigurations/meta/v1"
@@ -24,7 +23,7 @@ type ProviderApplyConfiguration struct {
 	v1.TypeMetaApplyConfiguration    `json:",inline"`
 	*v1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
 	Spec                             *ProviderSpecApplyConfiguration `json:"spec,omitempty"`
-	Status                           *hykubev1alpha1.ProviderStatus  `json:"status,omitempty"`
+	Status                           *string                         `json:"status,omitempty"`
 }
 
 // Provider constructs a declarative configuration of the Provider type for use with
@@ -207,7 +206,7 @@ func (b *ProviderApplyConfiguration) WithSpec(value *ProviderSpecApplyConfigurat
 // WithStatus sets the Status field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Status field is set to the value of the last call.
-func (b *ProviderApplyConfiguration) WithStatus(value hykubev1alpha1.ProviderStatus) *ProviderApplyConfiguration {
+func (b *ProviderApplyConfiguration) WithStatus(value string) *ProviderApplyConfiguration {
 	b.Status = &value
 	return b
 }

@@ -17,8 +17,10 @@ limitations under the License.
 package provider
 
 import (
+	"context"
 	"hykube.io/apiserver/pkg/apis/hykube"
 	"hykube.io/apiserver/pkg/registry"
+	"k8s.io/apimachinery/pkg/apis/meta/internalversion"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/registry/generic"
 	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
@@ -47,5 +49,16 @@ func NewREST(scheme *runtime.Scheme, optsGetter generic.RESTOptionsGetter) (*reg
 	if err := store.CompleteWithOptions(options); err != nil {
 		return nil, err
 	}
+
+	watch, err := store.Watch(context.TODO(), &internalversion.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	providerWatcher := watcher{
+		watch: watch,
+		store: store,
+	}
+	providerWatcher.Start()
+
 	return &registry.REST{Store: store}, nil
 }

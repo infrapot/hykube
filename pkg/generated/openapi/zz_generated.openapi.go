@@ -116,15 +116,15 @@ func schema_pkg_apis_hykube_v1alpha1_Provider(ref common.ReferenceCallback) comm
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Default: map[string]interface{}{},
-							Ref:     ref("hykube.io/apiserver/pkg/apis/hykube/v1alpha1.ProviderStatus"),
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"hykube.io/apiserver/pkg/apis/hykube/v1alpha1.ProviderSpec", "hykube.io/apiserver/pkg/apis/hykube/v1alpha1.ProviderStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"hykube.io/apiserver/pkg/apis/hykube/v1alpha1.ProviderSpec", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 

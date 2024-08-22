@@ -38,10 +38,6 @@ type ProviderSpec struct {
 	ReferenceType ReferenceType
 }
 
-// ProviderStatus is the status of a Provider.
-type ProviderStatus struct {
-}
-
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
@@ -51,5 +47,5 @@ type Provider struct {
 	metav1.ObjectMeta
 
 	Spec   ProviderSpec
-	Status ProviderStatus
+	Status string
 }

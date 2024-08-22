@@ -50,6 +50,6 @@ type Provider struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
-	Spec   ProviderSpec   `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
-	Status ProviderStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	Spec   ProviderSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status string       `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }

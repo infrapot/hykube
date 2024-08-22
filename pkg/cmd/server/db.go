@@ -19,7 +19,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apiserver/pkg/registry/generic"
-	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
 	"k8s.io/apiserver/pkg/storage/storagebackend"
 	"k8s.io/apiserver/pkg/util/flowcontrol/request"
 	"time"
@@ -46,8 +45,9 @@ func (g *proxiedRESTOptionsGetter) GetRESTOptions(resource schema.GroupResource,
 		CodecForVersions(s, s, g.groupVersioner, g.groupVersioner)
 
 	restOptions := generic.RESTOptions{
-		ResourcePrefix:            resource.String(),
-		Decorator:                 genericregistry.StorageWithCacher(),
+		ResourcePrefix: resource.String(),
+		//Decorator:                 genericregistry.StorageWithCacher(),
+		Decorator:                 generic.UndecoratedStorage,
 		EnableGarbageCollection:   true,
 		DeleteCollectionWorkers:   1,
 		CountMetricPollPeriod:     time.Minute,
