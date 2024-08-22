@@ -5,15 +5,15 @@ Supports Kubernetes: **1.30+**
 
 ## Project goals
 
-The goal of the project is to rework controller management mechanisms in Kubernetes to provide more control over the management of resources, achieving control of over 100,000+ nodes/resources. Close compliance with Kubernetes (K8S) is desired.
+The goal of the project is to rework controller management mechanisms in Kubernetes to provide more control over the management of resources, with a goal of achieving control of over 100,000+ nodes/resources. Close compliance with Kubernetes (K8S) is desired.
 
-That's why the project keeps the K8S API server and comes with a suite of additional commands to control the resource synchronization process, like [OpenTofu](https://opentofu.org/) does, with three separate steps:
+That's why the project provides an extension of K8S API server and comes with a suite of additional commands to control the resource synchronization process, like [OpenTofu](https://opentofu.org/) does, with three separate steps:
 
 1. Write: Describe necessary resources, which can be cloud resources but also other parts of an infrastructure.
 2. Plan: Create an execution plan describing the infrastructure it will create, update, and delete, based on the configuration and existing infrastructure.
 3. Apply: On approval, perform proposed operations in the correct order, respecting resource dependencies.
 
-## Kubernetes limitations
+## Project reasons - Kubernetes limitations
 
 Kubernetes does not handle the management of hyperscale numbers of resources well. [As stated in the documentation](https://kubernetes.io/docs/setup/best-practices/cluster-large/) for version 1.30.0, it can support up to:
 * 5,000 nodes
@@ -48,7 +48,7 @@ Even though [Kubernetes Cluster API](https://cluster-api.sigs.k8s.io/) exists an
 
 ### CRDs fragmentation
 
-Another example of K8S limitations is the issue with handling high amounts of CRDs, which cause fragmentation of libraries to handle hyperscaler resources, e.g., Crosspl   ane has [150+ libraries to handle AWS services](https://marketplace.upbound.io/providers/upbound/provider-family-aws/v1.10.0/providers).
+Another example of K8S limitations is the issue with handling high amounts of CRDs, which cause fragmentation of libraries to handle hyperscaler resources, e.g., Crossplane has [150+ libraries to handle AWS services](https://marketplace.upbound.io/providers/upbound/provider-family-aws/v1.10.0/providers).
 
 ### ETCD is hard to manage
 
