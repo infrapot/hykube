@@ -22,14 +22,6 @@ var Funcs = func(codecs runtimeserializer.CodecFactory) []interface{} {
 		func(s *hykube.ProviderSpec, c fuzz.Continue) {
 			c.FuzzNoCustom(s) // fuzz self without calling this function again
 
-			if len(s.ProviderReference) != 0 {
-				s.ProviderReference = ""
-			}
-			if len(s.ProviderReference) != 0 {
-				s.ReferenceType = hykube.ProviderReferenceType
-			} else {
-				s.ReferenceType = ""
-			}
 		},
 	}
 }

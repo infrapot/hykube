@@ -15,6 +15,8 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 package v1alpha1
 
 import (
+	unsafe "unsafe"
+
 	hykube "hykube.io/apiserver/pkg/apis/hykube"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -131,13 +133,15 @@ func Convert_hykube_ProviderList_To_v1alpha1_ProviderList(in *hykube.ProviderLis
 }
 
 func autoConvert_v1alpha1_ProviderSpec_To_hykube_ProviderSpec(in *ProviderSpec, out *hykube.ProviderSpec, s conversion.Scope) error {
-	// WARNING: in.Reference requires manual conversion: does not exist in peer-type
-	// WARNING: in.ReferenceType requires manual conversion: inconvertible types (*hykube.io/apiserver/pkg/apis/hykube/v1alpha1.ReferenceType vs hykube.io/apiserver/pkg/apis/hykube.ReferenceType)
+	out.DownloadName = in.DownloadName
+	out.Version = (*string)(unsafe.Pointer(in.Version))
+	out.DownloadUrl = (*string)(unsafe.Pointer(in.DownloadUrl))
 	return nil
 }
 
 func autoConvert_hykube_ProviderSpec_To_v1alpha1_ProviderSpec(in *hykube.ProviderSpec, out *ProviderSpec, s conversion.Scope) error {
-	// WARNING: in.ProviderReference requires manual conversion: does not exist in peer-type
-	// WARNING: in.ReferenceType requires manual conversion: inconvertible types (hykube.io/apiserver/pkg/apis/hykube.ReferenceType vs *hykube.io/apiserver/pkg/apis/hykube/v1alpha1.ReferenceType)
+	out.DownloadName = in.DownloadName
+	out.Version = (*string)(unsafe.Pointer(in.Version))
+	out.DownloadUrl = (*string)(unsafe.Pointer(in.DownloadUrl))
 	return nil
 }

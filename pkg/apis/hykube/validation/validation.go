@@ -34,13 +34,5 @@ func ValidateProvider(f *hykube.Provider) field.ErrorList {
 func ValidateProviderSpec(s *hykube.ProviderSpec, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
-	if len(s.ProviderReference) == 0 && s.ReferenceType == hykube.ProviderReferenceType {
-		allErrs = append(allErrs, field.Invalid(fldPath.Child("providerReference"), s.ProviderReference, "cannot be empty if referenceType is Provider"))
-	}
-
-	if len(s.ReferenceType) != 0 && s.ReferenceType != hykube.ProviderReferenceType {
-		allErrs = append(allErrs, field.Invalid(fldPath.Child("referenceType"), s.ReferenceType, "must be Provider"))
-	}
-
 	return allErrs
 }

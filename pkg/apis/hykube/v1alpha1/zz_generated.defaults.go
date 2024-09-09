@@ -22,18 +22,5 @@ import (
 // Public to allow building arbitrary schemes.
 // All generated defaulters are covering - they call all nested defaulters.
 func RegisterDefaults(scheme *runtime.Scheme) error {
-	scheme.AddTypeDefaultingFunc(&Provider{}, func(obj interface{}) { SetObjectDefaults_Provider(obj.(*Provider)) })
-	scheme.AddTypeDefaultingFunc(&ProviderList{}, func(obj interface{}) { SetObjectDefaults_ProviderList(obj.(*ProviderList)) })
 	return nil
-}
-
-func SetObjectDefaults_Provider(in *Provider) {
-	SetDefaults_ProviderSpec(&in.Spec)
-}
-
-func SetObjectDefaults_ProviderList(in *ProviderList) {
-	for i := range in.Items {
-		a := &in.Items[i]
-		SetObjectDefaults_Provider(a)
-	}
 }

@@ -11,15 +11,12 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 
 package v1alpha1
 
-import (
-	v1alpha1 "hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
-)
-
 // ProviderSpecApplyConfiguration represents a declarative configuration of the ProviderSpec type for use
 // with apply.
 type ProviderSpecApplyConfiguration struct {
-	Reference     *string                 `json:"reference,omitempty"`
-	ReferenceType *v1alpha1.ReferenceType `json:"referenceType,omitempty"`
+	DownloadName *string `json:"downloadName,omitempty"`
+	Version      *string `json:"version,omitempty"`
+	DownloadUrl  *string `json:"downloadUrl,omitempty"`
 }
 
 // ProviderSpecApplyConfiguration constructs a declarative configuration of the ProviderSpec type for use with
@@ -28,18 +25,26 @@ func ProviderSpec() *ProviderSpecApplyConfiguration {
 	return &ProviderSpecApplyConfiguration{}
 }
 
-// WithReference sets the Reference field in the declarative configuration to the given value
+// WithDownloadName sets the DownloadName field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
-// If called multiple times, the Reference field is set to the value of the last call.
-func (b *ProviderSpecApplyConfiguration) WithReference(value string) *ProviderSpecApplyConfiguration {
-	b.Reference = &value
+// If called multiple times, the DownloadName field is set to the value of the last call.
+func (b *ProviderSpecApplyConfiguration) WithDownloadName(value string) *ProviderSpecApplyConfiguration {
+	b.DownloadName = &value
 	return b
 }
 
-// WithReferenceType sets the ReferenceType field in the declarative configuration to the given value
+// WithVersion sets the Version field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
-// If called multiple times, the ReferenceType field is set to the value of the last call.
-func (b *ProviderSpecApplyConfiguration) WithReferenceType(value v1alpha1.ReferenceType) *ProviderSpecApplyConfiguration {
-	b.ReferenceType = &value
+// If called multiple times, the Version field is set to the value of the last call.
+func (b *ProviderSpecApplyConfiguration) WithVersion(value string) *ProviderSpecApplyConfiguration {
+	b.Version = &value
+	return b
+}
+
+// WithDownloadUrl sets the DownloadUrl field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the DownloadUrl field is set to the value of the last call.
+func (b *ProviderSpecApplyConfiguration) WithDownloadUrl(value string) *ProviderSpecApplyConfiguration {
+	b.DownloadUrl = &value
 	return b
 }

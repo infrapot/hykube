@@ -183,21 +183,27 @@ func schema_pkg_apis_hykube_v1alpha1_ProviderSpec(ref common.ReferenceCallback) 
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"reference": {
+					"downloadName": {
 						SchemaProps: spec.SchemaProps{
-							Description: "A name of another provider or fischer, depending on the reference type.",
-							Type:        []string{"string"},
-							Format:      "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
-					"referenceType": {
+					"version": {
 						SchemaProps: spec.SchemaProps{
-							Description: "The reference type, defaults to \"Provider\" if reference is set.",
-							Type:        []string{"string"},
-							Format:      "",
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"downloadUrl": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 				},
+				Required: []string{"downloadName"},
 			},
 		},
 	}

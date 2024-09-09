@@ -1,6 +1,7 @@
 apiVersion: hykube.io/v1alpha1
 kind: Provider
 metadata:
-  name: aws-provider
-  labels:
-    sample-label: "true"
+  name: aws
+spec:
+  downloadName: terraform-provider-aws # The name of the provider in the [Terraform registry](https://releases.hashicorp.com/)
+  version: 5.62.0

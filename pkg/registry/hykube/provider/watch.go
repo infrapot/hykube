@@ -15,6 +15,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/hashicorp/terraform/configs/configschema"
 	"github.com/hashicorp/terraform/providers"
 	"hykube.io/apiserver/pkg/apis/hykube"
 	"hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
@@ -76,9 +77,16 @@ func (p *watcher) Start() {
 					continue
 				}
 
-				fullURLFile := "https://releases.hashicorp.com/terraform-provider-aws/5.62.0/terraform-provider-aws_5.62.0_linux_amd64.zip" // TODO: detect latest version by default
+				var fullURLFile string
+				if provider.Spec.DownloadUrl != nil {
+					fullURLFile = *provider.Spec.DownloadUrl
+				} else {
+					fullURLFile = "https://releases.hashicorp.com/" + provider.Spec.DownloadName + "/" +
+						*provider.Spec.Version + "/" + provider.Spec.DownloadName + "_" + *provider.Spec.Version +
+						"_linux_amd64.zip" // TODO: detect latest version by default
+				}
 
-				filename := "aws-provider.zip"
+				filename := provider.Name + ".zip"
 				_, err = client.R().
 					SetOutput(filename).
 					Get(fullURLFile)
@@ -124,13 +132,13 @@ func (p *watcher) Start() {
 					continue
 				}
 
-				err = p.addCDRs(schema)
+				err = p.addCDRs(schema, provider)
 				if err != nil {
 					klog.ErrorS(err, "Couldn't get provider schema")
 					return
 				}
 
-				klog.Infof("Downloaded a provider from: %s", fullURLFile)
+				klog.Infof("Added a provider from: %s", fullURLFile)
 			}
 		}
 	}()
@@ -225,59 +233,79 @@ func (p *watcher) getProviderSchema(providerFilename string, verbose bool) (*pro
 	return &schema, nil
 }
 
-func (p *watcher) addCDRs(*providers.GetSchemaResponse) error {
+func (p *watcher) addCDRs(schemaResponse *providers.GetSchemaResponse, provider *v1alpha1.Provider) error {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return err
 	}
 
 	crdClient, err := crd_clientset.NewForConfig(config)
-
-	CRDPlural := strings.ToLower("VPCs")
-	CRDGroup := "aws.hykube.io"
+	CRDGroup := provider.Name + ".hykube.io"
 	CRDVersion := "v1alpha1"
-	FullCRDName := CRDPlural + "." + CRDGroup
 
-	minLen := 1.0
-	crd := &apiextensionv1.CustomResourceDefinition{
-		ObjectMeta: meta_v1.ObjectMeta{Name: FullCRDName},
-		Spec: apiextensionv1.CustomResourceDefinitionSpec{
-			Group: CRDGroup,
-			Versions: []apiextensionv1.CustomResourceDefinitionVersion{
-				{
-					Name:    CRDVersion,
-					Storage: true,
-					Schema: &apiextensionv1.CustomResourceValidation{
-						OpenAPIV3Schema: &apiextensionv1.JSONSchemaProps{
-							Type:     "object",
-							Required: []string{"spec"},
-							Properties: map[string]apiextensionv1.JSONSchemaProps{
-								"spec": {
-									Type:     "object",
-									Required: []string{"name"},
-									Properties: map[string]apiextensionv1.JSONSchemaProps{
-										"name": {
-											Type:    "string",
-											Minimum: &minLen,
-										},
-									},
-								},
+	if err != nil {
+		return err
+	}
+	for k, v := range schemaResponse.ResourceTypes {
+		// TODO look at ImpliedType and blockTypes
+		kind := strings.ToLower(k)
+		CRDPlural := kind + "s" // TODO check if it's a standard way of doing it
+		FullCRDName := CRDPlural + "." + CRDGroup
+
+		var requiredFields []string
+		properties := make(map[string]apiextensionv1.JSONSchemaProps, len(v.Block.Attributes))
+
+		for attrK, attrV := range v.Block.Attributes {
+			if attrV.Required {
+				requiredFields = append(requiredFields, attrK)
+			}
+			properties[attrK] = apiextensionv1.JSONSchemaProps{
+				Type: p.attributeType(attrV),
+			}
+		}
+
+		crd := &apiextensionv1.CustomResourceDefinition{
+			ObjectMeta: meta_v1.ObjectMeta{Name: FullCRDName},
+			Spec: apiextensionv1.CustomResourceDefinitionSpec{
+				Group: CRDGroup,
+				Versions: []apiextensionv1.CustomResourceDefinitionVersion{
+					{
+						Name:    CRDVersion,
+						Storage: true,
+						Schema: &apiextensionv1.CustomResourceValidation{
+							OpenAPIV3Schema: &apiextensionv1.JSONSchemaProps{
+								Type:       "object",
+								Required:   requiredFields,
+								Properties: properties,
 							},
 						},
 					},
 				},
+				Scope: apiextensionv1.NamespaceScoped,
+				Names: apiextensionv1.CustomResourceDefinitionNames{
+					Plural: CRDPlural,
+					Kind:   kind,
+				},
 			},
-			Scope: apiextensionv1.NamespaceScoped,
-			Names: apiextensionv1.CustomResourceDefinitionNames{
-				Plural: CRDPlural,
-				Kind:   strings.ToLower("VPC"),
-			},
-		},
+		}
+
+		_, err = crdClient.ApiextensionsV1().CustomResourceDefinitions().Create(context.TODO(), crd, meta_v1.CreateOptions{})
+		if err != nil && apierrors.IsAlreadyExists(err) {
+			return nil
+		}
 	}
 
-	_, err = crdClient.ApiextensionsV1().CustomResourceDefinitions().Create(context.TODO(), crd, meta_v1.CreateOptions{})
-	if err != nil && apierrors.IsAlreadyExists(err) {
-		return nil
+	return nil
+}
+
+func (p *watcher) attributeType(attrV *configschema.Attribute) string {
+	if attrV.Type.IsPrimitiveType() {
+		return attrV.Type.FriendlyName()
+	} else { // TODO improve complex type
+		if attrV.Type.IsListType() {
+			return "list"
+		} else {
+			return "object"
+		}
 	}
-	return err
 }
