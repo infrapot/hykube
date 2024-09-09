@@ -26,7 +26,17 @@ type ProviderList struct {
 
 type ReferenceType string
 
+const (
+	ProviderReferenceType = ReferenceType("Provider")
+	FischerReferenceType  = ReferenceType("Fischer")
+)
+
 type ProviderSpec struct {
+	// A name of another provider or fischer, depending on the reference type.
+	Reference string `json:"reference,omitempty" protobuf:"bytes,1,opt,name=reference"`
+	// The reference type, defaults to "Provider" if reference is set.
+	ReferenceType *ReferenceType `json:"referenceType,omitempty" protobuf:"bytes,2,opt,name=referenceType"`
+
 	DownloadName string  `json:"downloadName" protobuf:"bytes,1,name=downloadName"`
 	Version      *string `json:"version,omitempty" protobuf:"bytes,2,opt,name=version"`
 	DownloadUrl  *string `json:"downloadUrl,omitempty" protobuf:"bytes,3,opt,name=downloadUrl"`

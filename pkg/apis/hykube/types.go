@@ -22,8 +22,21 @@ type ProviderList struct {
 	Items []Provider
 }
 
+// ReferenceType defines the type of object reference.
+type ReferenceType string
+
+const (
+	// ProviderReferenceType is used for Provider references.
+	ProviderReferenceType = ReferenceType("Provider")
+)
+
 // ProviderSpec is the specification of a Provider.
 type ProviderSpec struct {
+	// A name of another provider. TODO: is it needed??
+	ProviderReference string
+	// The reference type.
+	ReferenceType ReferenceType
+
 	DownloadName string
 	Version      *string
 	DownloadUrl  *string
@@ -32,6 +45,7 @@ type ProviderSpec struct {
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
+// TODO add more fields than just spec and stats
 type Provider struct {
 	metav1.TypeMeta
 	metav1.ObjectMeta
