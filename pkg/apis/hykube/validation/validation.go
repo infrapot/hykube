@@ -34,6 +34,10 @@ func ValidateProvider(f *hykube.Provider) field.ErrorList {
 func ValidateProviderSpec(s *hykube.ProviderSpec, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
+	if s.DownloadName == "" {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("downloadName"), s.ProviderReference, "cannot be empty"))
+	}
+
 	if len(s.ProviderReference) == 0 && s.ReferenceType == hykube.ProviderReferenceType {
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("providerReference"), s.ProviderReference, "cannot be empty if referenceType is Provider"))
 	}

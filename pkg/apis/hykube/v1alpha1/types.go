@@ -37,9 +37,9 @@ type ProviderSpec struct {
 	// The reference type, defaults to "Provider" if reference is set.
 	ReferenceType *ReferenceType `json:"referenceType,omitempty" protobuf:"bytes,2,opt,name=referenceType"`
 
-	DownloadName string  `json:"downloadName" protobuf:"bytes,1,name=downloadName"`
-	Version      *string `json:"version,omitempty" protobuf:"bytes,2,opt,name=version"`
-	DownloadUrl  *string `json:"downloadUrl,omitempty" protobuf:"bytes,3,opt,name=downloadUrl"`
+	DownloadName string  `json:"downloadName" protobuf:"bytes,3,name=downloadName"`
+	Version      *string `json:"version,omitempty" protobuf:"bytes,4,opt,name=version"`
+	DownloadUrl  *string `json:"downloadUrl,omitempty" protobuf:"bytes,5,opt,name=downloadUrl"`
 }
 
 type ProviderStatus struct {

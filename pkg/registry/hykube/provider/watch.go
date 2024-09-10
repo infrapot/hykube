@@ -59,7 +59,7 @@ func (p *watcher) Start() {
 
 				ctx := request.WithNamespace(context.TODO(), provider.Namespace)
 
-				klog.Infof("Found added event for: %s", provider.Name)
+				klog.Infof("Found added event for: %v", provider.Spec)
 
 				key, err := p.store.KeyFunc(ctx, provider.Name)
 				if err != nil {

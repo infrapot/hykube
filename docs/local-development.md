@@ -84,10 +84,10 @@ kubectl create -f artifacts/providers/aws-provider.yaml
 You can then get this resource by running:
 
 ```shell
-kubectl get provider aws-provider -o custom-columns=Name:.metadata.name,status:.status,CreatedAt:.metadata.creationTimestamp
+kubectl get provider aws -o custom-columns=Name:.metadata.name,status:.status,CreatedAt:.metadata.creationTimestamp
 #outputs
 #Name           status      CreatedAt
-#aws-provider   Initiated   2024-08-21T22:06:51Z
+#aws   Initiated   2024-08-21T22:06:51Z
 ```
 
 ## Local binary run
