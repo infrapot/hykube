@@ -269,7 +269,8 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 
 	crdClient, err := crd_clientset.NewForConfig(config)
 	CRDGroup := provider.Name + ".hykube.io"
-	CRDVersion := "v1alpha1"
+	CRDVersion := "v1"
+	trueVal := true
 
 	if err != nil {
 		return err
@@ -299,9 +300,11 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 						// TODO: handle nested array types e.g. E0912 13:04:45.166040       1 hashicorp.go:364] "cannot add resource type:aws_cloudfront_distribution" err="CustomResourceDefinition.apiextensions.k8s.io \"aws-cloudfront-distributions.aws.hykube.io\" is invalid: [spec.validation.openAPIV3Schema.properties[trusted_key_groups].items.properties[items].items: Required value: must be specified, spec.validation.openAPIV3Schema.properties[trusted_signers].items.properties[items].items: Required value: must be specified]"
 						Items: &apiextensionv1.JSONSchemaPropsOrArray{
 							Schema: &apiextensionv1.JSONSchemaProps{
-								Type: attrItemType,
+								Type:                   attrItemType,
+								XPreserveUnknownFields: &trueVal,
 							},
 						},
+						XPreserveUnknownFields: &trueVal,
 					}
 				} else {
 					// TODO handle array of arrays...
@@ -310,7 +313,8 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 						attrItemPropertyType := h.attributeType(&attrItemPropV)
 						// TODO: address nested array types
 						attrItemProperties[attrItemPropK] = apiextensionv1.JSONSchemaProps{
-							Type: attrItemPropertyType,
+							Type:                   attrItemPropertyType,
+							XPreserveUnknownFields: &trueVal,
 						}
 					}
 
@@ -318,8 +322,9 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 						Type: attributeType,
 						Items: &apiextensionv1.JSONSchemaPropsOrArray{
 							Schema: &apiextensionv1.JSONSchemaProps{
-								Type:       "object",
-								Properties: attrItemProperties,
+								Type:                   "object",
+								Properties:             attrItemProperties,
+								XPreserveUnknownFields: &trueVal,
 							},
 						},
 					}
@@ -327,7 +332,8 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 			} else {
 				// TODO: define fields for object type
 				properties[attrK] = apiextensionv1.JSONSchemaProps{
-					Type: attributeType,
+					Type:                   attributeType,
+					XPreserveUnknownFields: &trueVal,
 				}
 			}
 		}
@@ -340,11 +346,13 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 					{
 						Name:    CRDVersion,
 						Storage: true,
+						Served:  true,
 						Schema: &apiextensionv1.CustomResourceValidation{
 							OpenAPIV3Schema: &apiextensionv1.JSONSchemaProps{
-								Type:       "object",
-								Required:   requiredFields,
-								Properties: properties,
+								Type:                   "object",
+								Required:               requiredFields,
+								Properties:             properties,
+								XPreserveUnknownFields: &trueVal,
 							},
 						},
 					},

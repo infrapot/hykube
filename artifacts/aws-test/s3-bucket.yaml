@@ -1,0 +1,7 @@
+apiVersion: aws.hykube.io/v1
+kind: aws-s3-bucket
+metadata:
+  name: test-bucket
+spec:
+  bucket: "my-s3-bucket"
+  acl: "private"

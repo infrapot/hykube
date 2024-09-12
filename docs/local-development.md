@@ -80,24 +80,31 @@ You should now be able to create the resource type `Provider` which is the resou
 
 ```shell
 kubectl create -f artifacts/providers/aws.yaml
-# outputs provider "aws" created
+# provider "aws" created
 ```
 
 You can then get this resource by running:
 
 ```shell
 kubectl get provider aws -o custom-columns=Name:.metadata.name,status:.status,CreatedAt:.metadata.creationTimestamp
-#outputs
 # Name   status        CreatedAt
 # aws    adding CRDs   2024-09-12T09:15:29Z
 ```
 
-After the provider is initialized, you should see status `ready`:
+After the provider is initialized and all ~1500 CRDs are added (can take a while), you should see status `ready`:
 ```shell
 kubectl get provider aws -o custom-columns=Name:.metadata.name,status:.status,CreatedAt:.metadata.creationTimestamp
-#outputs
 # Name   status        CreatedAt
 # aws    ready         2024-09-12T09:15:29Z
+```
+
+## Deploy locally resources
+
+Once the provider is ready, you can add a test AWS S3 bucket:
+
+```shell
+kubectl create -f artifacts/aws-test/s3-bucket.yaml                                                                       
+# aws-s3-bucket.aws.hykube.io/test-bucket created
 ```
 
 ## Local binary run
