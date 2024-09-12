@@ -296,6 +296,7 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 					attrItemType := h.attributeType(attrItemTypes)
 					properties[attrK] = apiextensionv1.JSONSchemaProps{
 						Type: attributeType,
+						// TODO: handle nested array types e.g. E0912 13:04:45.166040       1 hashicorp.go:364] "cannot add resource type:aws_cloudfront_distribution" err="CustomResourceDefinition.apiextensions.k8s.io \"aws-cloudfront-distributions.aws.hykube.io\" is invalid: [spec.validation.openAPIV3Schema.properties[trusted_key_groups].items.properties[items].items: Required value: must be specified, spec.validation.openAPIV3Schema.properties[trusted_signers].items.properties[items].items: Required value: must be specified]"
 						Items: &apiextensionv1.JSONSchemaPropsOrArray{
 							Schema: &apiextensionv1.JSONSchemaProps{
 								Type: attrItemType,
