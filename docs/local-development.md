@@ -64,7 +64,9 @@ kubectl create -f artifacts/deployment/auth-reader.yaml -n kube-system
 kubectl create -f artifacts/deployment/rbac.yaml
 kubectl create -f artifacts/deployment/rbac-bind.yaml
 
-# create the service and replication controller
+# create the, PV, PVC, service and replication controller
+kubectl create -f artifacts/deployment/pv.yaml -n hykube
+kubectl create -f artifacts/deployment/pvc.yaml -n hykube
 kubectl create -f artifacts/deployment/deployment.yaml -n hykube
 kubectl create -f artifacts/deployment/service.yaml -n hykube
 
@@ -77,8 +79,8 @@ kubectl create -f artifacts/deployment/apiservice.yaml
 You should now be able to create the resource type `Provider` which is the resource type registered by the API server.
 
 ```shell
-kubectl create -f artifacts/providers/aws-provider.yaml
-# outputs provider "aws-provider" created
+kubectl create -f artifacts/providers/aws.yaml
+# outputs provider "aws" created
 ```
 
 You can then get this resource by running:

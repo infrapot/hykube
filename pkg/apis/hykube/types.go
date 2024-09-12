@@ -45,11 +45,11 @@ type ProviderSpec struct {
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// TODO add more fields than just spec and stats
 type Provider struct {
 	metav1.TypeMeta
 	metav1.ObjectMeta
 
-	Spec   ProviderSpec
-	Status string
+	Spec     ProviderSpec
+	Status   string
+	Filename string
 }

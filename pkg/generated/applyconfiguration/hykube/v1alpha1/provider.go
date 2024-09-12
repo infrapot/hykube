@@ -24,6 +24,7 @@ type ProviderApplyConfiguration struct {
 	*v1.ObjectMetaApplyConfiguration `json:"metadata,omitempty"`
 	Spec                             *ProviderSpecApplyConfiguration `json:"spec,omitempty"`
 	Status                           *string                         `json:"status,omitempty"`
+	Filename                         *string                         `json:"filename,omitempty"`
 }
 
 // Provider constructs a declarative configuration of the Provider type for use with
@@ -208,6 +209,14 @@ func (b *ProviderApplyConfiguration) WithSpec(value *ProviderSpecApplyConfigurat
 // If called multiple times, the Status field is set to the value of the last call.
 func (b *ProviderApplyConfiguration) WithStatus(value string) *ProviderApplyConfiguration {
 	b.Status = &value
+	return b
+}
+
+// WithFilename sets the Filename field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the Filename field is set to the value of the last call.
+func (b *ProviderApplyConfiguration) WithFilename(value string) *ProviderApplyConfiguration {
+	b.Filename = &value
 	return b
 }
 

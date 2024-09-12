@@ -120,6 +120,12 @@ func schema_pkg_apis_hykube_v1alpha1_Provider(ref common.ReferenceCallback) comm
 							Format: "",
 						},
 					},
+					"filename": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},

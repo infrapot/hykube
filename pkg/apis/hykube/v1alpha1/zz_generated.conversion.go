@@ -68,6 +68,7 @@ func autoConvert_v1alpha1_Provider_To_hykube_Provider(in *Provider, out *hykube.
 		return err
 	}
 	out.Status = in.Status
+	out.Filename = in.Filename
 	return nil
 }
 
@@ -82,6 +83,7 @@ func autoConvert_hykube_Provider_To_v1alpha1_Provider(in *hykube.Provider, out *
 		return err
 	}
 	out.Status = in.Status
+	out.Filename = in.Filename
 	return nil
 }
 

@@ -55,8 +55,8 @@ func NewREST(scheme *runtime.Scheme, optsGetter generic.RESTOptionsGetter) (*reg
 		return nil, err
 	}
 	providerWatcher := watcher{
-		watch: watch,
-		store: store,
+		watch:             watch,
+		hashicorpProvider: NewHashicorpProvider(store),
 	}
 	providerWatcher.Start()
 

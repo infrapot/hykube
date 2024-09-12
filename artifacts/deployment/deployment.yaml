@@ -16,7 +16,14 @@ spec:
         apiserver: "true"
     spec:
       serviceAccountName: apiserver
+      volumes:
+        - name: hykube-provider-storage
+          persistentVolumeClaim:
+            claimName: hykube-provider-pvc
       containers:
       - name: hykube-server
         image: hykube-apiserver:latest
         imagePullPolicy: Never
+        volumeMounts:
+          - mountPath: "/data"
+            name: hykube-provider-storage
