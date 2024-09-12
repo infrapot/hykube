@@ -337,13 +337,10 @@ func (h *hashicorpProvider) attributeType(attrV *configschema.Attribute) string 
 		if name == "bool" {
 			name = "string" // K8S doesn't support boolean fields...
 		}
-		if name == "list" {
-			name = "array"
-		}
 		return name
 	} else { // TODO improve complex type
 		if attrV.Type.IsListType() {
-			return "list"
+			return "array"
 		} else {
 			return "object"
 		}
