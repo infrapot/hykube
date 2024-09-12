@@ -19,9 +19,9 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
-	"github.com/hashicorp/terraform/configs/configschema"
 	tfplugin "github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/providers"
+	"github.com/zclconf/go-cty/cty"
 	"hykube.io/apiserver/pkg/apis/hykube"
 	"hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
 	"io"
@@ -288,8 +288,46 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 			if attrV.Required {
 				requiredFields = append(requiredFields, attrK)
 			}
-			properties[attrK] = apiextensionv1.JSONSchemaProps{
-				Type: h.attributeType(attrV),
+			attributeType := h.attributeType(&attrV.Type)
+
+			if attributeType == "array" {
+				attrItemTypes := attrV.Type.ListElementType()
+				if attrItemTypes.IsPrimitiveType() {
+					attrItemType := h.attributeType(attrItemTypes)
+					properties[attrK] = apiextensionv1.JSONSchemaProps{
+						Type: attributeType,
+						Items: &apiextensionv1.JSONSchemaPropsOrArray{
+							Schema: &apiextensionv1.JSONSchemaProps{
+								Type: attrItemType,
+							},
+						},
+					}
+				} else {
+					// TODO handle array of arrays...
+					attrItemProperties := make(map[string]apiextensionv1.JSONSchemaProps, len(v.Block.Attributes))
+					for attrItemPropK, attrItemPropV := range attrItemTypes.AttributeTypes() {
+						attrItemPropertyType := h.attributeType(&attrItemPropV)
+						// TODO: address nested array types
+						attrItemProperties[attrItemPropK] = apiextensionv1.JSONSchemaProps{
+							Type: attrItemPropertyType,
+						}
+					}
+
+					properties[attrK] = apiextensionv1.JSONSchemaProps{
+						Type: attributeType,
+						Items: &apiextensionv1.JSONSchemaPropsOrArray{
+							Schema: &apiextensionv1.JSONSchemaProps{
+								Type:       "object",
+								Properties: attrItemProperties,
+							},
+						},
+					}
+				}
+			} else {
+				// TODO: define fields for object type
+				properties[attrK] = apiextensionv1.JSONSchemaProps{
+					Type: attributeType,
+				}
 			}
 		}
 
@@ -331,15 +369,15 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 	return nil
 }
 
-func (h *hashicorpProvider) attributeType(attrV *configschema.Attribute) string {
-	if attrV.Type.IsPrimitiveType() {
-		name := attrV.Type.FriendlyName()
+func (h *hashicorpProvider) attributeType(ctyType *cty.Type) string {
+	if ctyType.IsPrimitiveType() {
+		name := ctyType.FriendlyName()
 		if name == "bool" {
 			name = "string" // K8S doesn't support boolean fields...
 		}
 		return name
 	} else { // TODO improve complex type
-		if attrV.Type.IsListType() {
+		if ctyType.IsListType() {
 			return "array"
 		} else {
 			return "object"
