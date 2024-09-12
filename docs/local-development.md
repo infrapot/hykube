@@ -88,8 +88,16 @@ You can then get this resource by running:
 ```shell
 kubectl get provider aws -o custom-columns=Name:.metadata.name,status:.status,CreatedAt:.metadata.creationTimestamp
 #outputs
-#Name           status      CreatedAt
-#aws   Initiated   2024-08-21T22:06:51Z
+# Name   status        CreatedAt
+# aws    adding CRDs   2024-09-12T09:15:29Z
+```
+
+After the provider is initialized, you should see status `ready`:
+```shell
+kubectl get provider aws -o custom-columns=Name:.metadata.name,status:.status,CreatedAt:.metadata.creationTimestamp
+#outputs
+# Name   status        CreatedAt
+# aws    ready         2024-09-12T09:15:29Z
 ```
 
 ## Local binary run

@@ -88,7 +88,7 @@ func (h *hashicorpProvider) Initialize(ctx context.Context, provider *v1alpha1.P
 			return err
 		}
 
-		klog.Infof("Downloaded a provider from: %s", fullURLFile)
+		klog.Infof("Downloaded a provider from: %s to: %s", fullURLFile, filename)
 		err = h.updateProviderStatus(ctx, key, out, preconditions, "downloaded provider")
 		if err != nil {
 			return fmt.Errorf("cannot update provider: %w", err)
@@ -102,7 +102,7 @@ func (h *hashicorpProvider) Initialize(ctx context.Context, provider *v1alpha1.P
 		return fmt.Errorf("cannot update provider: %w", err)
 	}
 
-	providerFilename, err := h.extractFile(err, filename)
+	providerPath, err := h.extractFile(err, filename)
 	if err != nil {
 		err = fmt.Errorf("couldn't extract provider: %w", err)
 		err2 := h.updateProviderStatus(ctx, key, out, preconditions, fmt.Sprintf("error: %s", err))
@@ -112,7 +112,7 @@ func (h *hashicorpProvider) Initialize(ctx context.Context, provider *v1alpha1.P
 		return err
 	}
 
-	err = h.updateProviderFilename(ctx, key, out, preconditions, providerFilename)
+	err = h.updateProviderPath(ctx, key, out, preconditions, providerPath)
 	if err != nil {
 		klog.ErrorS(err, "cannot update provider")
 	}
@@ -122,7 +122,7 @@ func (h *hashicorpProvider) Initialize(ctx context.Context, provider *v1alpha1.P
 		return fmt.Errorf("cannot update provider: %w", err)
 	}
 
-	schema, err := h.getProviderSchema(providerFilename, false)
+	schema, err := h.getProviderSchema(providerPath, false)
 	if err != nil {
 		err = fmt.Errorf("couldn't get provider schema: %w", err)
 		err2 := h.updateProviderStatus(ctx, key, out, preconditions, fmt.Sprintf("error: %s", err))
@@ -146,6 +146,10 @@ func (h *hashicorpProvider) Initialize(ctx context.Context, provider *v1alpha1.P
 		}
 		return err
 	}
+	err = h.updateProviderStatus(ctx, key, out, preconditions, "ready")
+	if err != nil {
+		return fmt.Errorf("cannot update provider: %w", err)
+	}
 
 	klog.Infof("Added provider CRDs from: %s", fullURLFile)
 	return nil
@@ -168,7 +172,7 @@ func (h *hashicorpProvider) updateProviderStatus(ctx context.Context, key string
 	)
 }
 
-func (h *hashicorpProvider) updateProviderFilename(ctx context.Context, key string, out runtime.Object, preconditions storage.Preconditions, filename string) error {
+func (h *hashicorpProvider) updateProviderPath(ctx context.Context, key string, out runtime.Object, preconditions storage.Preconditions, filename string) error {
 	return h.store.Storage.GuaranteedUpdate(
 		ctx, key, out, false, &preconditions,
 		storage.SimpleUpdate(func(existing runtime.Object) (runtime.Object, error) {
@@ -191,7 +195,7 @@ func (h *hashicorpProvider) extractFile(err error, filename string) (string, err
 		return "", fmt.Errorf("couldn't open zip file: %w", err)
 	}
 	defer r.Close()
-	providerFilename := ""
+	providerPath := ""
 	for _, f := range r.File {
 		if f.Name == "LICENSE.txt" {
 			continue
@@ -202,7 +206,7 @@ func (h *hashicorpProvider) extractFile(err error, filename string) (string, err
 		}
 		defer rc.Close()
 		f, err := os.OpenFile(
-			f.Name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+			dataDir+string(os.PathSeparator)+f.Name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 		if err != nil {
 			return "", fmt.Errorf("couldn't open new file file: %w", err)
 		}
@@ -211,15 +215,15 @@ func (h *hashicorpProvider) extractFile(err error, filename string) (string, err
 		if err != nil {
 			return "", fmt.Errorf("couldn't copy file: %w", err)
 		}
-		providerFilename = f.Name()
+		providerPath = f.Name()
 	}
-	if providerFilename == "" {
+	if providerPath == "" {
 		return "", fmt.Errorf("no provider file found")
 	}
-	return providerFilename, nil
+	return providerPath, nil
 }
 
-func (h *hashicorpProvider) getProviderSchema(providerFilename string, verbose bool) (*providers.GetSchemaResponse, error) {
+func (h *hashicorpProvider) getProviderSchema(providerPath string, verbose bool) (*providers.GetSchemaResponse, error) {
 	options := hclog.LoggerOptions{
 		Name:   "plugin",
 		Level:  hclog.Error,
@@ -231,7 +235,7 @@ func (h *hashicorpProvider) getProviderSchema(providerFilename string, verbose b
 	logger := hclog.New(&options)
 	client := plugin.NewClient(
 		&plugin.ClientConfig{
-			Cmd:              exec.Command(dataDir + string(os.PathSeparator) + providerFilename),
+			Cmd:              exec.Command(providerPath),
 			HandshakeConfig:  tfplugin.Handshake,
 			VersionedPlugins: tfplugin.VersionedPlugins,
 			Managed:          true,
