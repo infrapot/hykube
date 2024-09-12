@@ -274,10 +274,11 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 	if err != nil {
 		return err
 	}
+	klog.Infof("Schema has %d resource types", len(schemaResponse.ResourceTypes))
 	for k, v := range schemaResponse.ResourceTypes {
 		// TODO look at ImpliedType and blockTypes
-		kind := strings.ToLower(k)
-		CRDPlural := kind + "s" // TODO check if it's a standard way of doing it
+		kind := strings.ReplaceAll(strings.ToLower(k), "_", "-") // a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.'
+		CRDPlural := kind + "s"                                  // TODO check if it's a standard way of doing it
 		FullCRDName := CRDPlural + "." + CRDGroup
 
 		var requiredFields []string
@@ -318,8 +319,12 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 		}
 
 		_, err = crdClient.ApiextensionsV1().CustomResourceDefinitions().Create(context.TODO(), crd, meta_v1.CreateOptions{})
-		if err != nil && apierrors.IsAlreadyExists(err) {
-			return nil
+		if err != nil {
+			if apierrors.IsAlreadyExists(err) {
+				// do nothing
+			} else {
+				klog.ErrorS(err, "cannot add resource type:"+k)
+			}
 		}
 	}
 
@@ -328,7 +333,14 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 
 func (h *hashicorpProvider) attributeType(attrV *configschema.Attribute) string {
 	if attrV.Type.IsPrimitiveType() {
-		return attrV.Type.FriendlyName()
+		name := attrV.Type.FriendlyName()
+		if name == "bool" {
+			name = "string" // K8S doesn't support boolean fields...
+		}
+		if name == "list" {
+			name = "array"
+		}
+		return name
 	} else { // TODO improve complex type
 		if attrV.Type.IsListType() {
 			return "list"
