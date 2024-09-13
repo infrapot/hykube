@@ -20,8 +20,5 @@ func addDefaultingFuncs(scheme *runtime.Scheme) error {
 
 // SetDefaults_ProviderSpec sets defaults for Provider spec
 func SetDefaults_ProviderSpec(obj *ProviderSpec) {
-	if (obj.ReferenceType == nil || len(*obj.ReferenceType) == 0) && len(obj.Reference) != 0 {
-		t := ProviderReferenceType
-		obj.ReferenceType = &t
-	}
+
 }

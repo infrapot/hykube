@@ -22,14 +22,6 @@ func Convert_v1alpha1_ProviderSpec_To_hykube_ProviderSpec(in *ProviderSpec, out 
 		return err
 	}
 
-	if in.ReferenceType != nil {
-		// assume that ReferenceType is defaulted
-		switch *in.ReferenceType {
-		case ProviderReferenceType:
-			out.ReferenceType = hykube.ProviderReferenceType
-			out.ProviderReference = in.Reference
-		}
-	}
 	return nil
 }
 
@@ -38,13 +30,6 @@ func Convert_hykube_ProviderSpec_To_v1alpha1_ProviderSpec(in *hykube.ProviderSpe
 	err := autoConvert_hykube_ProviderSpec_To_v1alpha1_ProviderSpec(in, out, s)
 	if err != nil {
 		return err
-	}
-
-	switch in.ReferenceType {
-	case hykube.ProviderReferenceType:
-		t := ProviderReferenceType
-		out.ReferenceType = &t
-		out.Reference = in.ProviderReference
 	}
 
 	return nil
