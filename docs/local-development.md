@@ -76,6 +76,8 @@ kubectl create -f artifacts/deployment/apiservice.yaml
 
 ## Test that your setup has worked
 
+### Testing provider
+
 You should now be able to create the resource type `Provider` which is the resource type registered by the API server.
 
 ```shell
@@ -103,8 +105,16 @@ kubectl get provider aws -o custom-columns=Name:.metadata.name,status:.status,Cr
 Once the provider is ready, you can add a test AWS S3 bucket:
 
 ```shell
-kubectl create -f artifacts/aws-test/s3-bucket.yaml                                                                       
-kubectl delete -f artifacts/aws-test/s3-bucket.yaml                                                                       
+kubectl create -f artifacts/aws-test/s3-bucket.yaml
+# aws-s3-bucket.aws.hykube.io/test-bucket created
+```
+
+## Testing plan
+
+One a provider is installed and test resource is added, we invoke a plan to perform synchronization:
+
+```shell
+kubectl create -f artifacts/plans/s3-plan.yaml
 # aws-s3-bucket.aws.hykube.io/test-bucket created
 ```
 

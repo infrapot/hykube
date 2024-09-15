@@ -10,7 +10,9 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 
 package hykube
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
@@ -51,9 +53,23 @@ type PlanList struct {
 	Items []Plan
 }
 
-// PlanSpec is the specification of a Provider.
+type ProviderPlanDetails struct {
+	Name   string
+	Config interface{}
+}
+
+func (p *ProviderPlanDetails) DeepCopy() *ProviderPlanDetails {
+	ret := ProviderPlanDetails{}
+
+	ret.Name = p.Name
+	ret.Config = p.Config // TODO: we assume configuration is always immutable; maybe marshal and unmarshal is better
+
+	return &ret
+}
+
+// PlanSpec is the specification of a Plan.
 type PlanSpec struct {
-	// TODO provider specific configuration
+	Provider ProviderPlanDetails
 }
 
 // +genclient

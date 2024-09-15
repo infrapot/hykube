@@ -1,3 +1,6 @@
+API rule violation: names_match,github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1,PlanSpec,Provider
+API rule violation: names_match,github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1,ProviderPlanDetails,Config
+API rule violation: names_match,github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1,ProviderPlanDetails,Name
 API rule violation: names_match,k8s.io/apimachinery/pkg/apis/meta/v1,APIResourceList,APIResources
 API rule violation: names_match,k8s.io/apimachinery/pkg/apis/meta/v1,Duration,Duration
 API rule violation: names_match,k8s.io/apimachinery/pkg/apis/meta/v1,InternalEvent,Object

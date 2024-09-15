@@ -1,0 +1,9 @@
+apiVersion: hykube.io/v1alpha1
+kind: Plan
+metadata:
+  name: aws-test
+spec:
+  provider:
+    name: aws
+    config:
+      test: "true"

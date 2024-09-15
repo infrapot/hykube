@@ -36,7 +36,7 @@ func (h *hashicorpPlan) Plan(ctx context.Context, plan *v1alpha1.Plan) error {
 	//if err != nil {
 	//	return err
 	//}
-
+	//
 	//res, err := h.getResources(ctx, config)
 	//if err != nil {
 	//	return err
