@@ -17,7 +17,7 @@ limitations under the License.
 package validation
 
 import (
-	"hykube.io/apiserver/pkg/apis/hykube"
+	"github.com/infrapot/hykube/pkg/apis/hykube"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
@@ -37,6 +37,13 @@ func ValidateProviderSpec(s *hykube.ProviderSpec, fldPath *field.Path) field.Err
 	if s.DownloadName == "" {
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("downloadName"), s.DownloadName, "cannot be empty"))
 	}
+
+	return allErrs
+}
+
+// ValidatePlan validates a Plan.
+func ValidatePlan(f *hykube.Plan) field.ErrorList {
+	allErrs := field.ErrorList{}
 
 	return allErrs
 }

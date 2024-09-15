@@ -12,8 +12,8 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 package hykube
 
 import (
-	v1alpha1 "hykube.io/apiserver/pkg/generated/informers/externalversions/hykube/v1alpha1"
-	internalinterfaces "hykube.io/apiserver/pkg/generated/informers/externalversions/internalinterfaces"
+	v1alpha1 "github.com/infrapot/hykube/pkg/generated/informers/externalversions/hykube/v1alpha1"
+	internalinterfaces "github.com/infrapot/hykube/pkg/generated/informers/externalversions/internalinterfaces"
 )
 
 // Interface provides access to each of this group's versions.

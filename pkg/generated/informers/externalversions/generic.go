@@ -14,7 +14,7 @@ package externalversions
 import (
 	"fmt"
 
-	v1alpha1 "hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
+	v1alpha1 "github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 )
@@ -46,6 +46,8 @@ func (f *genericInformer) Lister() cache.GenericLister {
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
 	// Group=hykube.io, Version=v1alpha1
+	case v1alpha1.SchemeGroupVersion.WithResource("plans"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Hykube().V1alpha1().Plans().Informer()}, nil
 	case v1alpha1.SchemeGroupVersion.WithResource("providers"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Hykube().V1alpha1().Providers().Informer()}, nil
 

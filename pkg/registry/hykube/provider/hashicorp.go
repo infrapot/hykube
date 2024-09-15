@@ -21,9 +21,9 @@ import (
 	"github.com/hashicorp/go-plugin"
 	tfplugin "github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/providers"
+	"github.com/infrapot/hykube/pkg/apis/hykube"
+	"github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1"
 	"github.com/zclconf/go-cty/cty"
-	"hykube.io/apiserver/pkg/apis/hykube"
-	"hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
 	"io"
 	apiextensionv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	crd_clientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -264,7 +264,7 @@ func (h *hashicorpProvider) getProviderSchema(providerPath string, verbose bool)
 func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse, provider *v1alpha1.Provider) error {
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot get k8s config : %w", err)
 	}
 
 	crdClient, err := crd_clientset.NewForConfig(config)
@@ -273,7 +273,7 @@ func (h *hashicorpProvider) addCDRs(schemaResponse *providers.GetSchemaResponse,
 	trueVal := true
 
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot get CRD client : %w", err)
 	}
 	klog.Infof("Schema has %d resource types", len(schemaResponse.ResourceTypes))
 	for k, v := range schemaResponse.ResourceTypes {

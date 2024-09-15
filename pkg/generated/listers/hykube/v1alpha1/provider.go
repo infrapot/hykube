@@ -12,7 +12,7 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 package v1alpha1
 
 import (
-	v1alpha1 "hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
+	v1alpha1 "github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/listers"
 	"k8s.io/client-go/tools/cache"

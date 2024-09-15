@@ -46,3 +46,34 @@ type Provider struct {
 	Status   string       `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 	Filename string       `json:"filename,omitempty" protobuf:"bytes,4,opt,name=filename"`
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:prerelease-lifecycle-gen:introduced=1.0
+// +k8s:prerelease-lifecycle-gen:removed=1.10
+
+// PlanList is a list of Plan objects.
+type PlanList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+
+	Items []Plan `json:"items" protobuf:"bytes,2,rep,name=items"`
+}
+
+type PlanSpec struct {
+}
+
+type PlanStatus struct {
+}
+
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:prerelease-lifecycle-gen:introduced=1.0
+// +k8s:prerelease-lifecycle-gen:removed=1.10
+
+type Plan struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+
+	Spec   PlanSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status string   `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+}

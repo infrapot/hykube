@@ -12,4 +12,4 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 // +groupName=hykube.io
 
 // Package hykube is the internal version of the API.
-package hykube // import "hykube.io/apiserver/pkg/apis/hykube"
+package hykube // import "github.com/infrapot/hykube/pkg/apis/hykube"

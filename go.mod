@@ -1,4 +1,4 @@
-module hykube.io/apiserver
+module github.com/infrapot/hykube
 
 go 1.22.0
 

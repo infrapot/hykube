@@ -19,7 +19,7 @@ package main
 import (
 	"os"
 
-	"hykube.io/apiserver/pkg/cmd/server"
+	"github.com/infrapot/hykube/pkg/cmd/server"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	"k8s.io/component-base/cli"
 )

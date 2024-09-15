@@ -12,9 +12,9 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 package applyconfiguration
 
 import (
-	v1alpha1 "hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
-	hykubev1alpha1 "hykube.io/apiserver/pkg/generated/applyconfiguration/hykube/v1alpha1"
-	internal "hykube.io/apiserver/pkg/generated/applyconfiguration/internal"
+	v1alpha1 "github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1"
+	hykubev1alpha1 "github.com/infrapot/hykube/pkg/generated/applyconfiguration/hykube/v1alpha1"
+	internal "github.com/infrapot/hykube/pkg/generated/applyconfiguration/internal"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	testing "k8s.io/client-go/testing"
@@ -25,6 +25,8 @@ import (
 func ForKind(kind schema.GroupVersionKind) interface{} {
 	switch kind {
 	// Group=hykube.io, Version=v1alpha1
+	case v1alpha1.SchemeGroupVersion.WithKind("Plan"):
+		return &hykubev1alpha1.PlanApplyConfiguration{}
 	case v1alpha1.SchemeGroupVersion.WithKind("Provider"):
 		return &hykubev1alpha1.ProviderApplyConfiguration{}
 	case v1alpha1.SchemeGroupVersion.WithKind("ProviderSpec"):

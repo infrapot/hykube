@@ -10,10 +10,10 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen=package
-// +k8s:conversion-gen=hykube.io/apiserver/pkg/apis/hykube
+// +k8s:conversion-gen=github.com/infrapot/hykube/pkg/apis/hykube
 // +k8s:defaulter-gen=TypeMeta
 // +k8s:prerelease-lifecycle-gen=true
 // +groupName=hykube.io
 
 // Package v1alpha1 is the v1alpha1 version of the API.
-package v1alpha1 // import "hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
+package v1alpha1 // import "github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1"

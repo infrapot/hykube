@@ -104,6 +104,7 @@ Once the provider is ready, you can add a test AWS S3 bucket:
 
 ```shell
 kubectl create -f artifacts/aws-test/s3-bucket.yaml                                                                       
+kubectl delete -f artifacts/aws-test/s3-bucket.yaml                                                                       
 # aws-s3-bucket.aws.hykube.io/test-bucket created
 ```
 

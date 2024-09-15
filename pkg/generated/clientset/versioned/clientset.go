@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"net/http"
 
-	hykubev1alpha1 "hykube.io/apiserver/pkg/generated/clientset/versioned/typed/hykube/v1alpha1"
+	hykubev1alpha1 "github.com/infrapot/hykube/pkg/generated/clientset/versioned/typed/hykube/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

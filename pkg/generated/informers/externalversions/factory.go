@@ -16,9 +16,9 @@ import (
 	sync "sync"
 	time "time"
 
-	versioned "hykube.io/apiserver/pkg/generated/clientset/versioned"
-	hykube "hykube.io/apiserver/pkg/generated/informers/externalversions/hykube"
-	internalinterfaces "hykube.io/apiserver/pkg/generated/informers/externalversions/internalinterfaces"
+	versioned "github.com/infrapot/hykube/pkg/generated/clientset/versioned"
+	hykube "github.com/infrapot/hykube/pkg/generated/informers/externalversions/hykube"
+	internalinterfaces "github.com/infrapot/hykube/pkg/generated/informers/externalversions/internalinterfaces"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

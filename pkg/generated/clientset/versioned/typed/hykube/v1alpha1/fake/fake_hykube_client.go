@@ -12,13 +12,17 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 package fake
 
 import (
-	v1alpha1 "hykube.io/apiserver/pkg/generated/clientset/versioned/typed/hykube/v1alpha1"
+	v1alpha1 "github.com/infrapot/hykube/pkg/generated/clientset/versioned/typed/hykube/v1alpha1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )
 
 type FakeHykubeV1alpha1 struct {
 	*testing.Fake
+}
+
+func (c *FakeHykubeV1alpha1) Plans(namespace string) v1alpha1.PlanInterface {
+	return &FakePlans{c, namespace}
 }
 
 func (c *FakeHykubeV1alpha1) Providers(namespace string) v1alpha1.ProviderInterface {

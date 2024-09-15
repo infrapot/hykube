@@ -11,6 +11,14 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 
 package v1alpha1
 
+// PlanListerExpansion allows custom methods to be added to
+// PlanLister.
+type PlanListerExpansion interface{}
+
+// PlanNamespaceListerExpansion allows custom methods to be added to
+// PlanNamespaceLister.
+type PlanNamespaceListerExpansion interface{}
+
 // ProviderListerExpansion allows custom methods to be added to
 // ProviderLister.
 type ProviderListerExpansion interface{}

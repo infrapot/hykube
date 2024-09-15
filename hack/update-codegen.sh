@@ -23,7 +23,7 @@ CODEGEN_PKG=${CODEGEN_PKG:-$(cd "${SCRIPT_ROOT}"; ls -d -1 ./vendor/k8s.io/code-
 
 source "${CODEGEN_PKG}/kube_codegen.sh"
 
-THIS_PKG="hykube.io/apiserver"
+THIS_PKG="github.com/infrapot/hykube"
 API_KNOWN_VIOLATIONS_DIR="${SCRIPT_ROOT}/hack"
 
 kube::codegen::gen_helpers \

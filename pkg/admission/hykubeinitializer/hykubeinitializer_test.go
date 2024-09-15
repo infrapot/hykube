@@ -21,9 +21,9 @@ import (
 	"testing"
 	"time"
 
-	"hykube.io/apiserver/pkg/admission/hykubeinitializer"
-	"hykube.io/apiserver/pkg/generated/clientset/versioned/fake"
-	informers "hykube.io/apiserver/pkg/generated/informers/externalversions"
+	"github.com/infrapot/hykube/pkg/admission/hykubeinitializer"
+	"github.com/infrapot/hykube/pkg/generated/clientset/versioned/fake"
+	informers "github.com/infrapot/hykube/pkg/generated/informers/externalversions"
 	"k8s.io/apiserver/pkg/admission"
 )
 

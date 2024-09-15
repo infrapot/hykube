@@ -12,7 +12,7 @@ package fuzzer
 
 import (
 	fuzz "github.com/google/gofuzz"
-	"hykube.io/apiserver/pkg/apis/hykube"
+	"github.com/infrapot/hykube/pkg/apis/hykube"
 	runtimeserializer "k8s.io/apimachinery/pkg/runtime/serializer"
 )
 

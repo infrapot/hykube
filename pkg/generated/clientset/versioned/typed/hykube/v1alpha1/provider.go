@@ -14,9 +14,9 @@ package v1alpha1
 import (
 	"context"
 
-	v1alpha1 "hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
-	hykubev1alpha1 "hykube.io/apiserver/pkg/generated/applyconfiguration/hykube/v1alpha1"
-	scheme "hykube.io/apiserver/pkg/generated/clientset/versioned/scheme"
+	v1alpha1 "github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1"
+	hykubev1alpha1 "github.com/infrapot/hykube/pkg/generated/applyconfiguration/hykube/v1alpha1"
+	scheme "github.com/infrapot/hykube/pkg/generated/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"

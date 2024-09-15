@@ -17,7 +17,7 @@ limitations under the License.
 package hykubeinitializer
 
 import (
-	informers "hykube.io/apiserver/pkg/generated/informers/externalversions"
+	informers "github.com/infrapot/hykube/pkg/generated/informers/externalversions"
 	"k8s.io/apiserver/pkg/admission"
 )
 

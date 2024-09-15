@@ -12,7 +12,7 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 package scheme
 
 import (
-	hykubev1alpha1 "hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
+	hykubev1alpha1 "github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

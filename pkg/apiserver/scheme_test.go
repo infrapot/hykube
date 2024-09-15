@@ -19,7 +19,7 @@ package apiserver
 import (
 	"testing"
 
-	hykubefuzzer "hykube.io/apiserver/pkg/apis/hykube/fuzzer"
+	hykubefuzzer "github.com/infrapot/hykube/pkg/apis/hykube/fuzzer"
 	"k8s.io/apimachinery/pkg/api/apitesting/roundtrip"
 )
 

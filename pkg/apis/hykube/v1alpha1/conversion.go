@@ -11,7 +11,7 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 package v1alpha1
 
 import (
-	"hykube.io/apiserver/pkg/apis/hykube"
+	"github.com/infrapot/hykube/pkg/apis/hykube"
 	"k8s.io/apimachinery/pkg/conversion"
 )
 

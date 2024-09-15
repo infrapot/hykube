@@ -19,8 +19,8 @@ package provider
 import (
 	"context"
 	"fmt"
-	"hykube.io/apiserver/pkg/apis/hykube"
-	"hykube.io/apiserver/pkg/apis/hykube/validation"
+	"github.com/infrapot/hykube/pkg/apis/hykube"
+	"github.com/infrapot/hykube/pkg/apis/hykube/validation"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"

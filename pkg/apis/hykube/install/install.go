@@ -11,8 +11,8 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 package install
 
 import (
-	"hykube.io/apiserver/pkg/apis/hykube"
-	"hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
+	"github.com/infrapot/hykube/pkg/apis/hykube"
+	"github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 )

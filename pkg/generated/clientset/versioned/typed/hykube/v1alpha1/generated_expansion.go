@@ -11,4 +11,6 @@ For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
 
 package v1alpha1
 
+type PlanExpansion interface{}
+
 type ProviderExpansion interface{}

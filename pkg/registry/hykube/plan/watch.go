@@ -8,7 +8,7 @@
  * For details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  */
 
-package provider
+package plan
 
 import (
 	"context"
@@ -19,8 +19,8 @@ import (
 )
 
 type watcher struct {
-	watch             watch2.Interface
-	hashicorpProvider HashicorpProvider
+	watch         watch2.Interface
+	hashicorpPlan HashicorpPlan
 }
 
 func (p *watcher) Start() {
@@ -30,16 +30,16 @@ func (p *watcher) Start() {
 			//var event *watch2.Event
 			event := <-p.watch.ResultChan()
 			if event.Type == watch2.Added {
-				provider := event.Object.(*v1alpha1.Provider)
+				dto := event.Object.(*v1alpha1.Plan)
 
-				ctx := request.WithNamespace(context.TODO(), provider.Namespace)
+				ctx := request.WithNamespace(context.TODO(), dto.Namespace)
 
-				klog.Infof("Found added event for: %v", provider.Name)
+				klog.Infof("Found added event for: %v", dto.Name)
 
-				err := p.hashicorpProvider.Initialize(ctx, provider)
+				err := p.hashicorpPlan.Plan(ctx, dto)
 
 				if err != nil {
-					klog.ErrorS(err, "Couldn't initialize provider: %s", provider.Name)
+					klog.ErrorS(err, "Couldn't initialize entity: %s", dto.Name)
 				}
 			}
 		}

@@ -14,19 +14,24 @@ package v1alpha1
 import (
 	"net/http"
 
-	v1alpha1 "hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
-	"hykube.io/apiserver/pkg/generated/clientset/versioned/scheme"
+	v1alpha1 "github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1"
+	"github.com/infrapot/hykube/pkg/generated/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 
 type HykubeV1alpha1Interface interface {
 	RESTClient() rest.Interface
+	PlansGetter
 	ProvidersGetter
 }
 
 // HykubeV1alpha1Client is used to interact with features provided by the hykube.io group.
 type HykubeV1alpha1Client struct {
 	restClient rest.Interface
+}
+
+func (c *HykubeV1alpha1Client) Plans(namespace string) PlanInterface {
+	return newPlans(c, namespace)
 }
 
 func (c *HykubeV1alpha1Client) Providers(namespace string) ProviderInterface {

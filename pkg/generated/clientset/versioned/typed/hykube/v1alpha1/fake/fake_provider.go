@@ -16,8 +16,8 @@ import (
 	json "encoding/json"
 	"fmt"
 
-	v1alpha1 "hykube.io/apiserver/pkg/apis/hykube/v1alpha1"
-	hykubev1alpha1 "hykube.io/apiserver/pkg/generated/applyconfiguration/hykube/v1alpha1"
+	v1alpha1 "github.com/infrapot/hykube/pkg/apis/hykube/v1alpha1"
+	hykubev1alpha1 "github.com/infrapot/hykube/pkg/generated/applyconfiguration/hykube/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	types "k8s.io/apimachinery/pkg/types"

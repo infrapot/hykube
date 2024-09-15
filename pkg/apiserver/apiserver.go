@@ -17,7 +17,7 @@ limitations under the License.
 package apiserver
 
 import (
-	"hykube.io/apiserver/pkg/apis/hykube"
+	"github.com/infrapot/hykube/pkg/apis/hykube"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -25,9 +25,10 @@ import (
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 
-	"hykube.io/apiserver/pkg/apis/hykube/install"
-	hykuberegistry "hykube.io/apiserver/pkg/registry"
-	providerstorage "hykube.io/apiserver/pkg/registry/hykube/provider"
+	"github.com/infrapot/hykube/pkg/apis/hykube/install"
+	hykuberegistry "github.com/infrapot/hykube/pkg/registry"
+	planstorage "github.com/infrapot/hykube/pkg/registry/hykube/plan"
+	providerstorage "github.com/infrapot/hykube/pkg/registry/hykube/provider"
 )
 
 var (
@@ -108,6 +109,7 @@ func (c completedConfig) New() (*HykubeServer, error) {
 
 	v1alpha1storage := map[string]rest.Storage{}
 	v1alpha1storage["providers"] = hykuberegistry.RESTInPeace(providerstorage.NewREST(Scheme, c.GenericConfig.RESTOptionsGetter))
+	v1alpha1storage["plans"] = hykuberegistry.RESTInPeace(planstorage.NewREST(Scheme, c.GenericConfig.RESTOptionsGetter))
 	apiGroupInfo.VersionedResourcesStorageMap["v1alpha1"] = v1alpha1storage
 
 	if err := s.GenericAPIServer.InstallAPIGroup(&apiGroupInfo); err != nil {

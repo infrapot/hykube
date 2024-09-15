@@ -40,3 +40,29 @@ type Provider struct {
 	Status   string
 	Filename string
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// PlanList is a list of Plan objects.
+type PlanList struct {
+	metav1.TypeMeta
+	metav1.ListMeta
+
+	Items []Plan
+}
+
+// PlanSpec is the specification of a Provider.
+type PlanSpec struct {
+	// TODO provider specific configuration
+}
+
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+type Plan struct {
+	metav1.TypeMeta
+	metav1.ObjectMeta
+
+	Spec   PlanSpec
+	Status string
+}

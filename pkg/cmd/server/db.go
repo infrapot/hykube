@@ -12,8 +12,8 @@ package server
 
 import (
 	"context"
+	"github.com/infrapot/hykube/pkg/apiserver"
 	"github.com/k3s-io/kine/pkg/endpoint"
-	"hykube.io/apiserver/pkg/apiserver"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"

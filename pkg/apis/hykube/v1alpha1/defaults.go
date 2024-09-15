@@ -22,3 +22,8 @@ func addDefaultingFuncs(scheme *runtime.Scheme) error {
 func SetDefaults_ProviderSpec(obj *ProviderSpec) {
 
 }
+
+// SetDefaults_PlanSpec sets defaults for Plan spec
+func SetDefaults_PlanSpec(p *PlanSpec) {
+
+}

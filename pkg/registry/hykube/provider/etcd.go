@@ -18,8 +18,8 @@ package provider
 
 import (
 	"context"
-	"hykube.io/apiserver/pkg/apis/hykube"
-	"hykube.io/apiserver/pkg/registry"
+	"github.com/infrapot/hykube/pkg/apis/hykube"
+	"github.com/infrapot/hykube/pkg/registry"
 	"k8s.io/apimachinery/pkg/apis/meta/internalversion"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/registry/generic"
